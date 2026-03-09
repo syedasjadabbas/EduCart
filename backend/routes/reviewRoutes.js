@@ -30,6 +30,21 @@ router.get('/', async (req, res) => {
     try {
         const reviews = await Review.find()
             .populate('user', 'name')
+            .populate('productId', 'name image')
+            .sort({ createdAt: -1 });
+        res.json(reviews);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get current user's reviews
+// @route   GET /api/reviews/mine
+// @access  Private
+router.get('/mine', protect, async (req, res) => {
+    try {
+        const reviews = await Review.find({ user: req.user._id })
+            .populate('productId', 'name')
             .sort({ createdAt: -1 });
         res.json(reviews);
     } catch (error) {
@@ -105,6 +120,42 @@ router.post('/:productId', protect, async (req, res) => {
 
         const populated = await review.populate('user', 'name');
         res.status(201).json(populated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Delete a review
+// @route   DELETE /api/reviews/:id
+// @access  Private (Admin or Owner)
+router.delete('/:id', protect, async (req, res) => {
+    try {
+        const review = await Review.findById(req.params.id);
+
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        // Check ownership or admin status
+        if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const productId = review.productId;
+        await Review.deleteOne({ _id: review._id });
+
+        // Update Product stats
+        const product = await Product.findById(productId);
+        if (product) {
+            const reviews = await Review.find({ productId });
+            product.numReviews = reviews.length;
+            product.ratings = reviews.length > 0
+                ? reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length
+                : 0;
+            await product.save();
+        }
+
+        res.json({ message: 'Review removed' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

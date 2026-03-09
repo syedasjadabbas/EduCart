@@ -1,7 +1,8 @@
-import { useState, useContext, useRef } from 'react';
-import { User, Lock, Camera, CheckCircle, AlertCircle, Package } from 'lucide-react';
+import { useState, useContext, useRef, useEffect } from 'react';
+import { User, Lock, Camera, CheckCircle, AlertCircle, Package, Star, Trash2 } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Profile = () => {
     const { user, updateUser } = useContext(AuthContext);
@@ -13,11 +14,54 @@ const Profile = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
+    const [myReviews, setMyReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
     const fileInputRef = useRef();
+
+    const fetchMyReviews = async () => {
+        if (!user?.token) return;
+        setReviewsLoading(true);
+        try {
+            const res = await fetch('/api/reviews/mine', {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMyReviews(data);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setReviewsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (user) fetchMyReviews();
+    }, [user]);
 
     if (!user) return <Navigate to="/login" replace />;
 
     const currentPic = previewPic || (user.profilePicture ? `http://localhost:5000${user.profilePicture}` : null);
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('Delete this review?')) return;
+        try {
+            const res = await fetch(`/api/reviews/${reviewId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            if (res.ok) {
+                toast.success('Review deleted');
+                fetchMyReviews();
+            } else {
+                toast.error('Failed to delete review');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Network error');
+        }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -215,6 +259,49 @@ const Profile = () => {
                             <Link to="/cart" className="text-sm text-blue-600 hover:text-blue-700">← Back to My Orders</Link>
                         </div>
                     </form>
+                </div>
+
+                {/* My Reviews Section */}
+                <div className="mt-12 bg-[var(--color-surface)] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm p-8">
+                    <h2 className="text-xl font-bold text-[var(--color-text-main)] mb-6 flex items-center gap-2">
+                        <Star className="h-5 w-5 text-yellow-500" />
+                        My Feedback
+                    </h2>
+
+                    {reviewsLoading ? (
+                        <p className="text-[var(--color-text-muted)] text-sm">Loading reviews...</p>
+                    ) : myReviews.length === 0 ? (
+                        <p className="text-[var(--color-text-muted)] text-sm">You haven't reviewed any products yet.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {myReviews.map(review => (
+                                <div key={review._id} className="p-4 bg-[var(--color-background)] rounded-2xl border border-slate-100 dark:border-slate-800 group relative">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <Link to={`/product/${review.productId?._id || review.productId}`} className="text-sm font-bold text-blue-600 hover:underline">
+                                                {review.productId?.name || `Product ID: ${review.productId}`}
+                                            </Link>
+                                            <div className="flex gap-1 mt-1">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-slate-300'}`} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteReview(review._id)}
+                                            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-[var(--color-text-main)] italic mb-1">"{review.comment}"</p>
+                                    <div className="text-[10px] text-[var(--color-text-muted)] text-right">
+                                        {new Date(review.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,0 +1,163 @@
+{
+  "reviews": [
+    {
+      "_id": "69acd84cfca00f4daca10d04",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "2",
+      "rating": 5,
+      "comment": "best product",
+      "createdAt": "2026-03-08T02:00:45.009Z",
+      "updatedAt": "2026-03-08T02:00:45.009Z",
+      "__v": 0
+    },
+    {
+      "_id": "69acd871fca00f4daca10d11",
+      "user": "69acc6cffb7c5656f1320c61",
+      "productId": "2",
+      "rating": 5,
+      "comment": "impressive",
+      "createdAt": "2026-03-08T02:01:21.304Z",
+      "updatedAt": "2026-03-08T02:01:21.304Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ae0e59e742b047b9419c71",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3e3",
+      "rating": 5,
+      "comment": "Nice Quality",
+      "createdAt": "2026-03-09T00:03:37.596Z",
+      "updatedAt": "2026-03-09T00:03:37.596Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ae10b987513c820e8cb8a9",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69acf87bcf1570d95d5cfcfd",
+      "rating": 5,
+      "comment": "wonderful product",
+      "createdAt": "2026-03-09T00:13:45.379Z",
+      "updatedAt": "2026-03-09T00:13:45.379Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af368cde69e70d6f783ab3",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3dc",
+      "rating": 4,
+      "comment": "Okay, but could be better.",
+      "createdAt": "2026-03-09T21:07:24.425Z",
+      "updatedAt": "2026-03-09T21:07:24.425Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af368cde69e70d6f783aba",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3dd",
+      "rating": 5,
+      "comment": "Really helpful for my studies.",
+      "createdAt": "2026-03-09T21:07:24.527Z",
+      "updatedAt": "2026-03-09T21:07:24.527Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af368cde69e70d6f783abf",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3de",
+      "rating": 3,
+      "comment": "Best purchase this semester!",
+      "createdAt": "2026-03-09T21:07:24.557Z",
+      "updatedAt": "2026-03-09T21:07:24.557Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af368cde69e70d6f783ac4",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3df",
+      "rating": 3,
+      "comment": "Okay, but could be better.",
+      "createdAt": "2026-03-09T21:07:24.593Z",
+      "updatedAt": "2026-03-09T21:07:24.593Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af368cde69e70d6f783ac9",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69ab86b3419965008909d3e0",
+      "rating": 4,
+      "comment": "Okay, but could be better.",
+      "createdAt": "2026-03-09T21:07:24.615Z",
+      "updatedAt": "2026-03-09T21:07:24.615Z",
+      "__v": 0
+    },
+    {
+      "_id": "69af43abf77f70786111ed8c",
+      "user": "69ab9b2931a70b8afc9f5485",
+      "productId": "69acf87bcf1570d95d5cfcf7",
+      "rating": 5,
+      "comment": "nice product quality",
+      "createdAt": "2026-03-09T22:03:23.139Z",
+      "updatedAt": "2026-03-09T22:03:23.139Z",
+      "__v": 0
+    }
+  ],
+  "users": [
+    {
+      "_id": "69ab9b2931a70b8afc9f5485",
+      "email": "asjadabbaszaidi@gmail.com",
+      "role": "student"
+    },
+    {
+      "_id": "69abaebe177238afd6894202",
+      "email": "admin@educart.com",
+      "role": "admin"
+    },
+    {
+      "_id": "69acc6cffb7c5656f1320c61",
+      "email": "trends.pvtlimited@gmail.com",
+      "role": "student"
+    },
+    {
+      "_id": "69aceacc685de3294bd9f89e",
+      "email": "digitaldreamer719@gmail.com",
+      "role": "student"
+    },
+    {
+      "_id": "69ae2fe171856a49e2a1e5c8",
+      "email": "student@test.com",
+      "role": "student"
+    },
+    {
+      "_id": "69af3de4f77f70786111ec63",
+      "email": "test@student.com",
+      "role": "student"
+    },
+    {
+      "_id": "69af3e75f77f70786111ec73",
+      "email": "john@doe.com",
+      "role": "student"
+    }
+  ],
+  "products": [
+    {
+      "_id": "69ab86b3419965008909d3dc",
+      "name": "Premium Notebook Set (3 Pack)"
+    },
+    {
+      "_id": "69ab86b3419965008909d3dd",
+      "name": "Gel Pen Pack - 12 Colors"
+    },
+    {
+      "_id": "69ab86b3419965008909d3de",
+      "name": "Wireless Study Lamp"
+    },
+    {
+      "_id": "69ab86b3419965008909d3df",
+      "name": "Portable Bluetooth Speaker"
+    },
+    {
+      "_id": "69ab86b3419965008909d3e0",
+      "name": "Laptop Stand Aluminum"
+    }
+  ]
+}

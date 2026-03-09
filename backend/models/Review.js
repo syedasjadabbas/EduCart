@@ -3,15 +3,14 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema(
     {
         user: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.Mixed,
             required: true,
             ref: 'User',
         },
-        // Using String so it works with mockProducts IDs ('1', '2', etc.)
-        // When migrated to DB products, this can be changed to ObjectId
         productId: {
-            type: String,
+            type: mongoose.Schema.Types.Mixed,
             required: true,
+            ref: 'Product',
         },
         rating: {
             type: Number,

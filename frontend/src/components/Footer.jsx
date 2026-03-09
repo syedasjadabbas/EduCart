@@ -77,22 +77,26 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Newsletter</h3>
-                        <p className="text-slate-400 text-sm mb-4">Get notified when new products drop & exclusive student offers.</p>
-                        <form className="flex" onSubmit={handleSubscribe}>
+                        <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Newsletter</h3>
+                        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                            Stay ahead of the curve. Get notified about new study tool drops and exclusive student offers.
+                        </p>
+                        <form className="relative group" onSubmit={handleSubscribe}>
                             <input
                                 type="email"
-                                placeholder="Your email"
+                                placeholder="student@edu.pk"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="bg-slate-800 text-white px-4 py-2 rounded-l-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500 border border-slate-700"
+                                className="w-full bg-slate-800/50 backdrop-blur-sm text-white pl-4 pr-16 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-slate-700/50 transition-all placeholder-slate-500 group-hover:bg-slate-800"
                             />
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-r-md transition-colors font-medium whitespace-nowrap"
+                                className="absolute right-1 top-1 bottom-1 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white rounded-lg transition-all font-bold text-xs shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center min-w-[60px]"
                             >
-                                {loading ? '...' : 'Join'}
+                                {loading ? (
+                                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : 'JOIN'}
                             </button>
                         </form>
                     </div>

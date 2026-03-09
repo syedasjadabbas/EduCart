@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Star, MessageSquare, Package, AlertCircle, RefreshCw } from 'lucide-react';
 import { mockProducts } from '../data/mockProducts';
+import AuthContext from '../context/AuthContext';
+import { useContext } from 'react';
+import toast from 'react-hot-toast';
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useContext(AuthContext);
 
     const fetchData = async () => {
         setLoading(true);
         try {
             const [reviewsRes, productsRes] = await Promise.all([
-                fetch('/api/reviews'),
+                fetch('/api/reviews', {
+                    headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {}
+                }),
                 fetch('/api/products')
             ]);
 
@@ -32,12 +38,17 @@ const AdminReviews = () => {
         fetchData();
     }, []);
 
-    // Helper to get product details from live DB and fallback to mockProducts
-    const getProductInfo = (productId) => {
-        const liveProduct = products.find(p => p._id === productId);
+    // Helper to get product details
+    const getProductInfo = (review) => {
+        // Use populated data if available
+        if (review.productId && typeof review.productId === 'object') {
+            return review.productId;
+        }
+
+        const liveProduct = products.find(p => p._id === review.productId);
         if (liveProduct) return liveProduct;
 
-        const legacyMockProduct = mockProducts.find(p => p.id === productId || String(p._id) === String(productId));
+        const legacyMockProduct = mockProducts.find(p => p.id === review.productId || String(p._id) === String(review.productId));
         return legacyMockProduct || { name: 'Deleted Product', image: null };
     };
 
@@ -74,11 +85,12 @@ const AdminReviews = () => {
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Rating</th>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Customer Feedback</th>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                                    <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                 {reviews.map((review) => {
-                                    const product = getProductInfo(review.productId);
+                                    const product = getProductInfo(review);
                                     return (
                                         <tr key={review._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -94,7 +106,7 @@ const AdminReviews = () => {
                                                         <div className="text-sm font-bold text-[var(--color-text-main)] max-w-[200px] truncate" title={product.name}>
                                                             {product.name}
                                                         </div>
-                                                        <div className="text-xs text-[var(--color-text-muted)]">ID: {review.productId}</div>
+                                                        <div className="text-xs text-[var(--color-text-muted)]">ID: {product._id || review.productId}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -122,6 +134,33 @@ const AdminReviews = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">
                                                 {new Date(review.createdAt).toLocaleDateString()}
                                                 <div className="text-xs mt-1">{new Date(review.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('Are you sure you want to delete this review?')) {
+                                                            try {
+                                                                const res = await fetch(`/api/reviews/${review._id}`, {
+                                                                    method: 'DELETE',
+                                                                    headers: { 'Authorization': `Bearer ${user.token}` }
+                                                                });
+                                                                if (res.ok) {
+                                                                    toast.success('Review deleted successfully');
+                                                                    fetchData();
+                                                                } else {
+                                                                    const data = await res.json();
+                                                                    toast.error(data.message || 'Failed to delete');
+                                                                }
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                toast.error('Network error. Please try again.');
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                >
+                                                    Delete
+                                                </button>
                                             </td>
                                         </tr>
                                     );
