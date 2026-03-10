@@ -49,7 +49,9 @@ const Cart = () => {
     }, [fetchMyOrders]);
 
     const handleNotReceived = async (orderId) => {
-        if (!window.confirm("Are you sure you haven't received this order? The admin will be notified and this status will be reset so they can re-ship it.")) return;
+        // Immediate feedback
+        toast.loading('Notifying admin...', { id: 'not-received-toast' });
+        console.log("Starting handleNotReceived for:", orderId);
 
         setConfirmingId(orderId);
         try {
@@ -63,7 +65,7 @@ const Cart = () => {
             });
 
             if (res.ok) {
-                toast.success('Report submitted. Admin has been notified.');
+                toast.success('Report submitted. Admin has been notified.', { id: 'not-received-toast' });
                 // Close modal ONLY on success
                 setSelectedOrderDetails(null);
                 fetchMyOrders();
@@ -548,9 +550,14 @@ const UnifiedOrderCard = ({ order, statusBadge, faded = false, confirmingId, han
                 {/* Not Received button — if shipped but not confirmed received */}
                 {order.isShipped && !order.isReceivedByUser && !isRejected && handleNotReceived && (
                     <button
-                        onClick={() => handleNotReceived(order._id)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            console.log("Not Received clicked in UnifiedOrderCard", order._id);
+                            handleNotReceived(order._id);
+                        }}
                         disabled={confirmingId === order._id}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/20"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/20 relative z-10 cursor-pointer"
+                        style={{ pointerEvents: 'auto' }}
                     >
                         <AlertCircle className="h-5 w-5" />
                         {confirmingId === order._id ? 'Processing...' : 'Not Received?'}
@@ -750,9 +757,14 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge, handleNotReceived,
                                 {/* Not Received Button: Only for shipped orders that aren't confirmed received yet */}
                                 {!!order.isShipped && !order.isReceivedByUser && (
                                     <button
-                                        onClick={() => handleNotReceived?.(order._id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log("Not Received clicked in OrdersTable", order._id);
+                                            handleNotReceived?.(order._id);
+                                        }}
                                         disabled={confirmingId === order._id}
-                                        className="text-white font-bold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-60 transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                                        className="text-white font-bold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-60 transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 relative z-10 cursor-pointer"
+                                        style={{ pointerEvents: 'auto' }}
                                     >
                                         <AlertCircle className="w-3.5 h-3.5" /> {confirmingId === order._id ? '...' : 'Not Received?'}
                                     </button>

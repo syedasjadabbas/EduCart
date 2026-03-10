@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Sun, Moon, Menu, Search, Package } from 'lucide-react';
-import { useContext, useState } from 'react';
+import { ShoppingCart, User, Sun, Moon, Menu, Search, Package, Home, BadgeCheck } from 'lucide-react';
+import { useContext, useState, useEffect } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
@@ -12,7 +12,17 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
+
+    // Scroll handler for dynamic navbar appearance
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -23,7 +33,13 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="fixed w-full z-50 glass-panel border-b border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)] shadow-sm">
+        <nav 
+            className={`fixed w-full z-[100] transition-all duration-500 border-b ${
+                isScrolled 
+                ? 'glass-panel border-slate-200/50 dark:border-white/10 shadow-lg py-2' 
+                : 'bg-transparent border-transparent py-4'
+            }`}
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     {/* Logo */}
@@ -58,6 +74,13 @@ const Navbar = () => {
 
                     {/* Nav Icons */}
                     <div className="flex items-center gap-4">
+                        <Link
+                            to="/"
+                            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-gray-300"
+                            title="Go to Home"
+                        >
+                            <Home className="h-5 w-5" />
+                        </Link>
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -84,10 +107,16 @@ const Navbar = () => {
 
                                 <div className="relative group">
                                     <Link to="/profile" className="flex items-center gap-2.5">
-                                        <span className="hidden lg:block text-sm font-bold text-[var(--color-text-main)] group-hover:text-blue-600 transition-colors pointer-events-none">
+                                        <span className="hidden lg:flex items-center gap-1.5 text-sm font-bold text-[var(--color-text-main)] group-hover:text-blue-600 transition-colors pointer-events-none">
                                             Hi, {user.name?.split(' ')[0]}!
+                                            {user.isStudentVerified && <BadgeCheck className="h-4 w-4 text-emerald-500 fill-emerald-500/10" />}
                                         </span>
-                                        <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-blue-100 flex items-center justify-center border-2 border-transparent group-hover:border-blue-500 shadow-sm transition-all">
+                                        <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-blue-100 flex items-center justify-center border-2 border-transparent group-hover:border-blue-500 shadow-sm transition-all relative">
+                                            {user.isStudentVerified && (
+                                                <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full border border-slate-100 dark:border-slate-800 z-10">
+                                                    <BadgeCheck className="h-3.5 w-3.5 text-emerald-500" />
+                                                </div>
+                                            )}
                                             {user.profilePicture ? (
                                                 <img src={`http://localhost:5000${user.profilePicture}`} alt={user.name} className="w-full h-full object-cover" />
                                             ) : (
@@ -157,6 +186,10 @@ const Navbar = () => {
                     )}
                     {user ? (
                         <div className="flex flex-col gap-2 py-2 text-[var(--color-text-main)] font-medium">
+                            <Link to="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 py-2 text-slate-600 dark:text-gray-300">
+                                <Home className="h-5 w-5" />
+                                <span>Home Page</span>
+                            </Link>
                             {user.role === 'admin' ? (
                                 <>
                                     <Link to="/admin/orders" onClick={() => setIsMenuOpen(false)} className="text-left text-emerald-600 hover:text-emerald-700">Admin Dashboard</Link>
@@ -172,7 +205,10 @@ const Navbar = () => {
                                                 <span className="text-xs font-bold text-blue-600">{user.name?.charAt(0).toUpperCase()}</span>
                                             </div>
                                         )}
-                                        <span>Hi, {user.name}</span>
+                                        <span className="flex items-center gap-1.5">
+                                            Hi, {user.name}
+                                            {user.isStudentVerified && <BadgeCheck className="h-4 w-4 text-emerald-500" />}
+                                        </span>
                                     </Link>
                                     <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-left text-blue-600 hover:text-blue-700">My Orders</Link>
                                     <Link to="/verify" onClick={() => setIsMenuOpen(false)} className="text-left text-[var(--color-text-main)] hover:text-blue-500">🏷️ Student Discount</Link>
@@ -181,10 +217,16 @@ const Navbar = () => {
                             <button onClick={() => { logout(); setIsMenuOpen(false); }} className="text-left text-red-500 hover:text-red-600">Logout</button>
                         </div>
                     ) : (
-                        <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 py-2 text-[var(--color-text-main)] font-medium">
-                            <User className="h-5 w-5" />
-                            Login / Register
-                        </Link>
+                        <div className="flex flex-col gap-2 py-2 text-[var(--color-text-main)] font-medium">
+                            <Link to="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 py-2 text-slate-600 dark:text-gray-300">
+                                <Home className="h-5 w-5" />
+                                <span>Home Page</span>
+                            </Link>
+                            <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 py-2">
+                                <User className="h-5 w-5" />
+                                Login / Register
+                            </Link>
+                        </div>
                     )}
                 </div>
             )}

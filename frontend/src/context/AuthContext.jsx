@@ -4,12 +4,14 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
         const userInfo = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
         if (userInfo) {
             setUser(JSON.parse(userInfo));
         }
+        setAuthLoading(false);
     }, []);
 
     const login = async (email, password, rememberMe = false) => {
@@ -73,7 +75,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
+        <AuthContext.Provider value={{ user, authLoading, login, register, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { ShieldCheck, Users, ShoppingBag, X, CheckCircle, Truck, MapPin, Package, PackageCheck, Clock, XCircle, AlertCircle, ArrowRight, Download, RotateCcw } from 'lucide-react';
+import { ShieldCheck, Users, ShoppingBag, X, CheckCircle, Truck, MapPin, Package, PackageCheck, Clock, XCircle, AlertCircle, ArrowRight, Download, RotateCcw, TrendingUp, CreditCard } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
 import ProductManager from '../components/ProductManager';
 import RevenueDashboard from '../components/RevenueDashboard';
@@ -13,7 +13,7 @@ import { Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
-    const { user } = useContext(AuthContext);
+    const { user, authLoading } = useContext(AuthContext);
     const [searchParams, setSearchParams] = useSearchParams();
     const [orders, setOrders] = useState([]);
     const initialTab = searchParams.get('tab') || 'orders';
@@ -46,7 +46,9 @@ const AdminDashboard = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch('/api/orders');
+            const res = await fetch('/api/orders', {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setOrders(data);
@@ -58,9 +60,81 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleExportExcel = async () => {
+        const loadingToast = toast.loading('Exporting to Excel...');
+        try {
+            const res = await fetch('/api/orders', {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch data');
+            const data = await res.json();
+
+            // Create Style-rich HTML for Excel
+            let tableContent = `
+                <table border="1" style="border-collapse: collapse; font-family: sans-serif;">
+                    <tr style="background-color: #10b981; color: #ffffff; font-weight: bold;">
+                        <th style="padding: 10px; border: 1px solid #ccc;">Order ID</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Customer</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Email</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Date</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Amount</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Payment</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Shipping</th>
+                        <th style="padding: 10px; border: 1px solid #ccc;">Items</th>
+                    </tr>
+            `;
+
+            data.forEach(o => {
+                const itemsList = o.orderItems.map(i => `${i.name} (x${i.qty})`).join(', ');
+                tableContent += `
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o._id}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o.contactInfo?.name || o.user?.name || 'N/A'}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o.contactInfo?.email || o.user?.email || 'N/A'}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${new Date(o.createdAt).toLocaleDateString()}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o.totalPrice}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o.paymentStatus}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${o.isShipped ? 'Shipped' : 'Pending'}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${itemsList}</td>
+                    </tr>
+                `;
+            });
+            tableContent += `</table>`;
+
+            const excelTemplate = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>EduCart Orders</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+                <body>${tableContent}</body></html>
+            `;
+
+            const blob = new Blob([excelTemplate], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const fileName = `EduCart_Orders_${new Date().toISOString().split('T')[0]}.xls`;
+            
+            const downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            
+            // Clean up
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(downloadLink);
+            }, 500);
+            
+            toast.success('Excel file exported!', { id: loadingToast });
+        } catch (error) {
+            console.error('Export Error:', error);
+            toast.error('Failed to export. Please try again.', { id: loadingToast });
+        }
+    };
+
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        if (!authLoading && user) {
+            fetchOrders();
+        }
+    }, [user, authLoading]);
 
     const handleMarkShipped = async (orderId) => {
         setUpdating(true);
@@ -106,6 +180,15 @@ const AdminDashboard = () => {
     };
 
     // Security Gate
+    if (authLoading) return (
+        <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-slate-500 font-medium">Verifying authorization...</p>
+            </div>
+        </div>
+    );
+    
     if (!user || user.role !== 'admin') {
         return <Navigate to="/" replace />;
     }
@@ -121,53 +204,78 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                     <div className="bg-[var(--color-surface)] p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    {/* Total Revenue */}
+                    <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 transition-all hover:scale-[1.02]">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                            <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl border border-blue-500/20">
+                                <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
+                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    {formatCurrency(orders.filter(o => o.paymentStatus === 'approved').reduce((acc, o) => acc + o.totalPrice, 0))}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pending Payments */}
+                    <div 
+                        onClick={() => {
+                            handleTabChange('orders');
+                            setStatusFilter('payment');
+                        }}
+                        className={`cursor-pointer p-6 rounded-2xl shadow-xl border transition-all hover:scale-[1.02] backdrop-blur-xl ${statusFilter === 'payment' && activeTab === 'orders' ? 'bg-amber-500/20 border-amber-500/40 ring-2 ring-amber-500/20' : 'bg-white/60 dark:bg-slate-900/40 border-white/20 dark:border-slate-700/30'}`}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-amber-500/10 dark:bg-amber-500/20 rounded-xl border border-amber-500/20">
+                                <CreditCard className={`h-6 w-6 ${orders.filter(o => o.paymentStatus === 'pending').length > 0 ? 'text-amber-600 animate-pulse' : 'text-amber-400'}`} />
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${statusFilter === 'payment' && activeTab === 'orders' ? 'text-amber-900 dark:text-amber-200' : 'text-slate-500 dark:text-slate-400'}`}>Awaiting Payment</p>
+                                <h3 className={`text-2xl font-bold ${statusFilter === 'payment' && activeTab === 'orders' ? 'text-amber-900 dark:text-amber-200' : 'text-slate-900 dark:text-white'}`}>
+                                    {orders.filter(o => o.paymentStatus === 'pending').length}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Total Orders */}
+                    <div 
+                        onClick={() => {
+                            handleTabChange('orders');
+                            setStatusFilter('all');
+                        }}
+                        className={`cursor-pointer p-6 rounded-2xl shadow-xl border transition-all hover:scale-[1.02] backdrop-blur-xl ${statusFilter === 'all' && activeTab === 'orders' ? 'bg-blue-500/20 border-blue-500/40 ring-2 ring-blue-500/20' : 'bg-white/60 dark:bg-slate-900/40 border-white/20 dark:border-slate-700/30'}`}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl border border-blue-500/20">
                                 <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-[var(--color-text-muted)]">Total Orders</p>
-                                <h3 className="text-2xl font-bold text-[var(--color-text-main)]">{orders.length}</h3>
+                                <p className={`text-sm font-medium ${statusFilter === 'all' && activeTab === 'orders' ? 'text-blue-900 dark:text-blue-200' : 'text-slate-500 dark:text-slate-400'}`}>Total Orders</p>
+                                <h3 className={`text-2xl font-bold ${statusFilter === 'all' && activeTab === 'orders' ? 'text-blue-900 dark:text-blue-200' : 'text-slate-900 dark:text-white'}`}>{orders.length}</h3>
                             </div>
                         </div>
                     </div>
+
+                    {/* Active Issues (Refunds + Missing) */}
                     <div 
-                        onClick={() => setStatusFilter(statusFilter === 'refund' ? 'all' : 'refund')}
-                        className={`cursor-pointer p-6 rounded-2xl shadow-sm border transition-all hover:shadow-md ${statusFilter === 'refund' ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400/20' : 'bg-[var(--color-surface)] border-slate-100 dark:border-slate-800'}`}
+                        onClick={() => {
+                            handleTabChange('orders');
+                            setStatusFilter('issue');
+                        }}
+                        className={`cursor-pointer p-6 rounded-2xl shadow-xl border transition-all hover:scale-[1.02] backdrop-blur-xl ${statusFilter === 'issue' && activeTab === 'orders' ? 'bg-red-500/20 border-red-500/40 ring-2 ring-red-500/20' : 'bg-white/60 dark:bg-slate-900/40 border-white/20 dark:border-slate-700/30'}`}
                     >
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                                <RotateCcw className={`h-6 w-6 ${orders.filter(o => o.refundStatus === 'requested').length > 0 ? 'text-amber-600 animate-pulse' : 'text-amber-400'}`} />
+                            <div className="p-3 bg-red-500/10 dark:bg-red-500/20 rounded-xl border border-red-500/20">
+                                <AlertCircle className={`h-6 w-6 ${orders.filter(o => ((o.notReceivedCount > 0 && !o.isShipped) || o.refundStatus === 'requested') && !o.isReceivedByUser).length > 0 ? 'text-red-600 animate-pulse' : 'text-red-400'}`} />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-[var(--color-text-muted)]">Refund Requests</p>
-                                <h3 className="text-2xl font-bold text-[var(--color-text-main)]">{orders.filter(o => o.refundStatus === 'requested').length}</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div 
-                        onClick={() => setStatusFilter(statusFilter === 'issue' ? 'all' : 'issue')}
-                        className={`cursor-pointer p-6 rounded-2xl shadow-sm border transition-all hover:shadow-md ${statusFilter === 'issue' ? 'bg-red-50 border-red-300 ring-2 ring-red-400/20' : 'bg-[var(--color-surface)] border-slate-100 dark:border-slate-800'}`}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                                <AlertCircle className={`h-6 w-6 ${orders.filter(o => o.notReceivedCount > 0).length > 0 ? 'text-red-600 animate-pulse' : 'text-red-400'}`} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-[var(--color-text-muted)]">Not Received</p>
-                                <h3 className="text-2xl font-bold text-[var(--color-text-main)]">{orders.filter(o => o.notReceivedCount > 0).length}</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-[var(--color-surface)] p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                                <PackageCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-[var(--color-text-muted)]">Delivered</p>
-                                <h3 className="text-2xl font-bold text-[var(--color-text-main)]">{orders.filter(o => o.isReceivedByUser).length}</h3>
+                                <p className={`text-sm font-medium ${statusFilter === 'issue' && activeTab === 'orders' ? 'text-red-900 dark:text-red-200' : 'text-slate-500 dark:text-slate-400'}`}>Active Issues</p>
+                                <h3 className={`text-2xl font-bold ${statusFilter === 'issue' && activeTab === 'orders' ? 'text-red-900 dark:text-red-200' : 'text-slate-900 dark:text-white'}`}>
+                                    {orders.filter(o => ((o.notReceivedCount > 0 && !o.isShipped) || o.refundStatus === 'requested') && !o.isReceivedByUser).length}
+                                </h3>
                             </div>
                         </div>
                     </div>
@@ -245,24 +353,31 @@ const AdminDashboard = () => {
                                             All
                                         </button>
                                         <button 
-                                            onClick={() => setStatusFilter('refund')}
-                                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1 ${statusFilter === 'refund' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10'}`}
+                                            onClick={() => setStatusFilter('payment')}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1 ${statusFilter === 'payment' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10'}`}
                                         >
-                                            Refunds {orders.filter(o => o.refundStatus === 'requested').length > 0 && <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}
+                                            Review Payments {orders.filter(o => o.paymentStatus === 'pending').length > 0 && <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />}
+                                        </button>
+
+                                        <button 
+                                            onClick={() => setStatusFilter('refund')}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1 ${statusFilter === 'refund' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm' : 'text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
+                                        >
+                                            Refunds {orders.filter(o => o.refundStatus === 'requested').length > 0 && <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />}
                                         </button>
                                         <button 
                                             onClick={() => setStatusFilter('issue')}
-                                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1 ${statusFilter === 'issue' ? 'bg-red-100 text-red-700 border border-red-200' : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10'}`}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors flex items-center gap-1 ${statusFilter === 'issue' ? 'bg-red-100 text-red-700 border border-red-200 shadow-sm' : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10'}`}
                                         >
-                                            Issues {orders.filter(o => o.notReceivedCount > 0 && !o.isShipped).length > 0 && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
+                                            Reports {orders.filter(o => o.notReceivedCount > 0 && !o.isShipped).length > 0 && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse font-bold" />}
                                         </button>
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => window.open('/api/orders/export-csv', '_blank')}
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800/30"
+                                    onClick={handleExportExcel}
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors border border-emerald-100 dark:border-emerald-800/30 shadow-sm active:scale-95"
                                 >
-                                    <Download className="w-4 h-4" /> Export Orders CSV
+                                    <Download className="w-4 h-4" /> Export to Excel
                                 </button>
                             </div>
 
@@ -284,8 +399,10 @@ const AdminDashboard = () => {
                                         <tbody className="bg-[var(--color-surface)] divide-y divide-slate-100 dark:divide-slate-800">
                                             {orders
                                                 .filter(o => {
+                                                    if (statusFilter === 'payment') return o.paymentStatus === 'pending';
                                                     if (statusFilter === 'refund') return o.refundStatus === 'requested';
-                                                    if (statusFilter === 'issue') return o.notReceivedCount > 0;
+                                                    if (statusFilter === 'ship') return o.paymentStatus === 'approved' && !o.isShipped;
+                                                    if (statusFilter === 'issue') return ((o.notReceivedCount > 0 && !o.isShipped) || o.refundStatus === 'requested') && !o.isReceivedByUser;
                                                     return true;
                                                 })
                                                 .map((order) => (
@@ -351,7 +468,7 @@ const AdminDashboard = () => {
                                                         )}
 
                                                         {/* Not Received active notification */}
-                                                        {order.notReceivedCount > 0 && (
+                                                        {order.notReceivedCount > 0 && !order.isReceivedByUser && (
                                                             <div className="mt-2">
                                                                 <button 
                                                                     onClick={() => setSelectedOrder(order)}

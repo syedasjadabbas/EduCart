@@ -40,7 +40,9 @@ const OrderDetail = () => {
     }, [id, user]);
 
     const handleReportNotReceived = async () => {
-        if (!window.confirm("Are you sure you haven't received this order? The admin will be notified and this status will be reset so they can re-ship it.")) return;
+        // Immediate feedback
+        toast.loading('Notifying admin...', { id: 'not-received-toast-detail' });
+        console.log("Starting handleReportNotReceived in OrderDetail for:", id);
 
         setReporting(true);
         try {
@@ -54,7 +56,7 @@ const OrderDetail = () => {
             });
 
             if (res.ok) {
-                toast.success('Report submitted. Admin has been notified.');
+                toast.success('Report submitted. Admin has been notified.', { id: 'not-received-toast-detail' });
                 fetchOrder();
             } else {
                 const err = await res.json().catch(() => ({}));
@@ -209,9 +211,14 @@ const OrderDetail = () => {
                                 {reporting ? '...' : 'Confirm Received'}
                             </button>
                             <button
-                                onClick={handleReportNotReceived}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log("Not Received button clicked in OrderDetail UI");
+                                    handleReportNotReceived();
+                                }}
                                 disabled={reporting}
-                                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-95 whitespace-nowrap"
+                                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-95 whitespace-nowrap relative z-10 cursor-pointer"
+                                style={{ pointerEvents: 'auto' }}
                             >
                                 {reporting ? '...' : 'Not Received?'}
                             </button>

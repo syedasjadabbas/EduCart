@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from 'react';
-import { User, Lock, Camera, CheckCircle, AlertCircle, Package, Star, Trash2, Edit2 } from 'lucide-react';
+import { User, Lock, Camera, CheckCircle, AlertCircle, Package, Star, Trash2, Edit2, BadgeCheck } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -198,9 +198,10 @@ const Profile = () => {
                             <p className="text-white font-bold text-lg">{user.name}</p>
                             <p className="text-blue-100 text-sm">{user.email}</p>
                             {user.isStudentVerified && (
-                                <span className="mt-1 inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                    ✓ Student Verified
-                                </span>
+                                <div className="mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/30 shadow-lg animate-pulse-slow">
+                                    <BadgeCheck className="h-4 w-4 text-emerald-300" />
+                                    <span>ELITE STUDENT VERIFIED</span>
+                                </div>
                             )}
                         </div>
                     </div>
