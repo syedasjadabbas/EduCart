@@ -90,8 +90,29 @@ const orderSchema = new mongoose.Schema(
             {
                 reason: { type: String },
                 reportedAt: { type: Date, default: Date.now },
+                adminAction: { type: String, default: null },
+                actionDate: { type: Date, default: null },
             }
         ],
+        refundStatus: {
+            type: String,
+            enum: ['none', 'requested', 'approved', 'rejected'],
+            default: 'none',
+        },
+        refundReason: {
+            type: String,
+            default: null,
+        },
+        refundRequestedAt: {
+            type: Date,
+        },
+        refundProcessedAt: {
+            type: Date,
+        },
+        refundAdminNote: {
+            type: String,
+            default: null,
+        },
     },
     {
         timestamps: true,

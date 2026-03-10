@@ -30,9 +30,24 @@ router.get('/', async (req, res) => {
     try {
         const reviews = await Review.find()
             .populate('user', 'name')
-            .populate('productId', 'name image')
-            .sort({ createdAt: -1 });
-        res.json(reviews);
+            .sort({ createdAt: -1 })
+            .lean();
+            
+        // Manual populate to avoid CastError with legacy mock products
+        const mongoose = require('mongoose');
+        const productIds = reviews.map(r => r.productId).filter(id => id && mongoose.Types.ObjectId.isValid(id.toString()));
+        const products = await Product.find({ _id: { $in: productIds } }).select('name image').lean();
+        const productMap = products.reduce((acc, p) => {
+            acc[p._id.toString()] = p;
+            return acc;
+        }, {});
+
+        const populatedReviews = reviews.map(r => ({
+            ...r,
+            productId: productMap[r.productId?.toString()] || { _id: r.productId, name: `Product ID: ${r.productId}` }
+        }));
+
+        res.json(populatedReviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -44,9 +59,24 @@ router.get('/', async (req, res) => {
 router.get('/mine', protect, async (req, res) => {
     try {
         const reviews = await Review.find({ user: req.user._id })
-            .populate('productId', 'name')
-            .sort({ createdAt: -1 });
-        res.json(reviews);
+            .sort({ createdAt: -1 })
+            .lean();
+        
+        // Manual populate to avoid CastError with legacy mock products
+        const mongoose = require('mongoose');
+        const productIds = reviews.map(r => r.productId).filter(id => id && mongoose.Types.ObjectId.isValid(id.toString()));
+        const products = await Product.find({ _id: { $in: productIds } }).select('name image').lean();
+        const productMap = products.reduce((acc, p) => {
+            acc[p._id.toString()] = p;
+            return acc;
+        }, {});
+
+        const populatedReviews = reviews.map(r => ({
+            ...r,
+            productId: productMap[r.productId?.toString()] || { _id: r.productId, name: `Product ID: ${r.productId}` }
+        }));
+
+        res.json(populatedReviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -144,15 +174,18 @@ router.delete('/:id', protect, async (req, res) => {
         const productId = review.productId;
         await Review.deleteOne({ _id: review._id });
 
-        // Update Product stats
-        const product = await Product.findById(productId);
-        if (product) {
-            const reviews = await Review.find({ productId });
-            product.numReviews = reviews.length;
-            product.ratings = reviews.length > 0
-                ? reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length
-                : 0;
-            await product.save();
+        // Update Product stats only if it's a real MongoDB ObjectId
+        const mongoose = require('mongoose');
+        if (productId && mongoose.Types.ObjectId.isValid(productId.toString())) {
+            const product = await Product.findById(productId);
+            if (product) {
+                const reviews = await Review.find({ productId });
+                product.numReviews = reviews.length;
+                product.ratings = reviews.length > 0
+                    ? reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length
+                    : 0;
+                await product.save();
+            }
         }
 
         res.json({ message: 'Review removed' });

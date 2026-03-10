@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Users, Search, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Users, Search, AlertCircle, CheckCircle, Clock, Download } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 
@@ -50,16 +50,39 @@ const UserManagementPanel = () => {
                     <h2 className="text-xl font-bold text-[var(--color-text-main)]">User Management</h2>
                 </div>
 
-                {/* Search */}
-                <div className="relative w-full sm:w-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm text-[var(--color-text-main)]"
-                    />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {/* Search */}
+                    <div className="relative flex-1 sm:flex-initial">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm text-[var(--color-text-main)]"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = `/api/users/export-csv`;
+                            link.setAttribute('download', '');
+                            // We need auth header, so use fetch
+                            fetch('/api/users/export-csv', { headers: { 'Authorization': `Bearer ${user?.token}` } })
+                                .then(res => res.blob())
+                                .then(blob => {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'educart_users.csv';
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                });
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800/30 whitespace-nowrap"
+                    >
+                        <Download className="w-4 h-4" /> CSV
+                    </button>
                 </div>
             </div>
 

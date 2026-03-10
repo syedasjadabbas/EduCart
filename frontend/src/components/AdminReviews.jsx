@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Star, MessageSquare, Package, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Star, MessageSquare, Package, AlertCircle, RefreshCw, Trash2, X } from 'lucide-react';
 import { mockProducts } from '../data/mockProducts';
 import AuthContext from '../context/AuthContext';
-import { useContext } from 'react';
 import toast from 'react-hot-toast';
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);      // which review is being deleted (spinner)
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null); // which review is awaiting confirmation
     const { user } = useContext(AuthContext);
 
     const fetchData = async () => {
@@ -38,9 +39,32 @@ const AdminReviews = () => {
         fetchData();
     }, []);
 
+    // ---- Delete handler (no window.confirm) ----
+    const handleDeleteReview = async (reviewId) => {
+        setDeletingId(reviewId);
+        try {
+            const res = await fetch(`/api/reviews/${reviewId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            });
+            if (res.ok) {
+                toast.success('Review deleted successfully');
+                setConfirmDeleteId(null);
+                fetchData();
+            } else {
+                const data = await res.json();
+                toast.error(data.message || 'Failed to delete');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     // Helper to get product details
     const getProductInfo = (review) => {
-        // Use populated data if available
         if (review.productId && typeof review.productId === 'object') {
             return review.productId;
         }
@@ -91,6 +115,8 @@ const AdminReviews = () => {
                             <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                 {reviews.map((review) => {
                                     const product = getProductInfo(review);
+                                    const isConfirming = confirmDeleteId === review._id;
+                                    const isDeleting = deletingId === review._id;
                                     return (
                                         <tr key={review._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -136,31 +162,35 @@ const AdminReviews = () => {
                                                 <div className="text-xs mt-1">{new Date(review.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    onClick={async () => {
-                                                        if (window.confirm('Are you sure you want to delete this review?')) {
-                                                            try {
-                                                                const res = await fetch(`/api/reviews/${review._id}`, {
-                                                                    method: 'DELETE',
-                                                                    headers: { 'Authorization': `Bearer ${user.token}` }
-                                                                });
-                                                                if (res.ok) {
-                                                                    toast.success('Review deleted successfully');
-                                                                    fetchData();
-                                                                } else {
-                                                                    const data = await res.json();
-                                                                    toast.error(data.message || 'Failed to delete');
-                                                                }
-                                                            } catch (err) {
-                                                                console.error(err);
-                                                                toast.error('Network error. Please try again.');
-                                                            }
-                                                        }
-                                                    }}
-                                                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                                >
-                                                    Delete
-                                                </button>
+                                                {isConfirming ? (
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <span className="text-xs text-red-500 font-semibold mr-1">Sure?</span>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isDeleting}
+                                                            onClick={() => handleDeleteReview(review._id)}
+                                                            className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 transition-colors"
+                                                        >
+                                                            {isDeleting ? 'Deleting…' : 'Yes, Delete'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setConfirmDeleteId(null)}
+                                                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setConfirmDeleteId(review._id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:text-white hover:bg-red-600 dark:text-red-400 dark:hover:text-white dark:hover:bg-red-600 rounded-lg transition-colors font-semibold text-xs border border-red-200 dark:border-red-800 hover:border-transparent"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Delete
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     );

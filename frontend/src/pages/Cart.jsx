@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowRight, Minus, Plus, X, Package, CheckCircle, Truck, Clock, AlertCircle, Star, Inbox } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Minus, Plus, X, Package, CheckCircle, Truck, Clock, AlertCircle, Star, Inbox, RotateCcw } from 'lucide-react';
 import { OrderSkeleton, EmptyState } from '../components/Skeletons';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
@@ -64,10 +64,13 @@ const Cart = () => {
 
             if (res.ok) {
                 toast.success('Report submitted. Admin has been notified.');
+                // Close modal ONLY on success
+                setSelectedOrderDetails(null);
                 fetchMyOrders();
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(`Error: ${err.message || 'Unknown error'}`);
+                fetchMyOrders();
             }
         } catch (err) {
             console.error(err);
@@ -79,38 +82,34 @@ const Cart = () => {
 
     const handleConfirmReceived = async (orderId) => {
         const orderToReview = myOrders.find(o => o._id === orderId);
-        if (orderToReview) {
-            setReviewOrder(orderToReview);
-        }
-
-        setMyOrders(prev =>
-            prev.map(o =>
-                o._id === orderId
-                    ? { ...o, isReceivedByUser: true, receivedAt: new Date().toISOString() }
-                    : o
-            )
-        );
+        
         setConfirmingId(orderId);
-
         try {
             const res = await fetch(`/api/orders/${orderId}/received`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
             });
 
             if (res.ok) {
-                setTimeout(() => fetchMyOrders(), 500);
+                toast.success('Order confirmed!');
+                if (orderToReview) {
+                    setReviewOrder(orderToReview);
+                }
+                // Close modal ONLY on success
+                setSelectedOrderDetails(null);
+                fetchMyOrders();
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(`Could not confirm receipt: ${err.message || 'Unknown error'}`);
                 fetchMyOrders();
-                setReviewOrder(null);
             }
         } catch (err) {
             console.error('Network error confirming receipt:', err);
             toast.error('Network error. Please check your connection and try again.');
             fetchMyOrders();
-            setReviewOrder(null);
         } finally {
             setConfirmingId(null);
         }
@@ -121,9 +120,9 @@ const Cart = () => {
     const discountAmount = (user?.isStudentVerified) ? rawSubtotal * 0.15 : 0;
     const subtotal = rawSubtotal - discountAmount;
 
-    // Active = in progress (not received AND not rejected)
+    // Active = in progress (not received AND not rejected) OR refund requested/approved
     const activeOrders = myOrders
-        .filter(o => !o.isReceivedByUser && o.paymentStatus !== 'rejected')
+        .filter(o => !o.isReceivedByUser && o.paymentStatus !== 'rejected' || (o.refundStatus && o.refundStatus !== 'none' && o.refundStatus !== 'rejected'))
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     // History = received OR rejected, newest first
@@ -132,9 +131,29 @@ const Cart = () => {
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const getStatusBadge = (order) => {
+        if (order.refundStatus === 'requested') return (
+            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1 rounded-md text-xs">
+                <RotateCcw className="w-3 h-3 animate-spin-slow" /> Refund Requested
+            </span>
+        );
+        if (order.refundStatus === 'approved') return (
+            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 rounded-md text-xs">
+                <CheckCircle className="w-3 h-3" /> Refunded
+            </span>
+        );
+        if (order.refundStatus === 'rejected') return (
+            <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs">
+                <X className="w-3 h-3" /> Refund Rejected
+            </span>
+        );
         if (order.paymentStatus === 'rejected') return (
             <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-300 font-semibold bg-red-100 dark:bg-red-900/50 px-2.5 py-1 rounded-md text-xs">
                 <AlertCircle className="w-3 h-3" /> Payment Rejected
+            </span>
+        );
+        if (order.notReceivedCount > 0 && !order.isShipped) return (
+            <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-md text-xs border border-red-100 dark:border-red-900/30 animate-pulse">
+                <AlertCircle className="w-3 h-3" /> Reported Missing
             </span>
         );
         if (order.isShipped) return (
@@ -273,6 +292,9 @@ const Cart = () => {
                                             orders={activeOrders}
                                             onViewDetails={(order) => setSelectedOrderDetails({ order, type: 'active' })}
                                             getStatusBadge={getStatusBadge}
+                                            handleNotReceived={handleNotReceived}
+                                            handleConfirmReceived={handleConfirmReceived}
+                                            confirmingId={confirmingId}
                                         />
                                     </div>
                                 )}
@@ -304,17 +326,34 @@ const Cart = () => {
                                         <OrdersTable
                                             orders={historyOrders}
                                             onViewDetails={(order) => setSelectedOrderDetails({ order, type: 'history' })}
-                                            getStatusBadge={(order) => (
-                                                order.paymentStatus === 'rejected' ? (
+                                            getStatusBadge={(order) => {
+                                                if (order.refundStatus && order.refundStatus !== 'none') {
+                                                    if (order.refundStatus === 'requested') return (
+                                                        <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1 rounded-md text-xs">
+                                                            <RotateCcw className="w-3 h-3" /> Refund Requested
+                                                        </span>
+                                                    );
+                                                    if (order.refundStatus === 'approved') return (
+                                                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-1 rounded-md text-xs">
+                                                            <CheckCircle className="w-3 h-3" /> Refunded
+                                                        </span>
+                                                    );
+                                                    return (
+                                                        <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs">
+                                                            <X className="w-3 h-3" /> Refund Rejected
+                                                        </span>
+                                                    );
+                                                }
+                                                return order.paymentStatus === 'rejected' ? (
                                                     <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-300 font-semibold bg-red-100 dark:bg-red-900/50 px-2.5 py-1 rounded-md text-xs">
                                                         <AlertCircle className="w-3 h-3" /> Payment Rejected
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-300 font-semibold bg-green-100 dark:bg-green-900/30 px-2.5 py-1 rounded-md text-xs">
-                                                        <CheckCircle className="w-3 h-3" /> Received {order.receivedAt ? `on ${new Date(order.receivedAt).toLocaleDateString()}` : ''}
+                                                        <CheckCircle className="w-3 h-3" /> Received
                                                     </span>
-                                                )
-                                            )}
+                                                );
+                                            }}
                                         />
                                     </div>
                                 )}
@@ -340,7 +379,7 @@ const Cart = () => {
                         <div className="p-4 sm:p-6 bg-[var(--color-background)] rounded-b-2xl overflow-y-auto">
                             <UnifiedOrderCard
                                 order={selectedOrderDetails.order}
-                                statusBadge={selectedOrderDetails.type === 'active' ? getStatusBadge(selectedOrderDetails.order) : (
+                                statusBadge={selectedOrderDetails.type === 'active' || (selectedOrderDetails.order.refundStatus && selectedOrderDetails.order.refundStatus !== 'none') ? getStatusBadge(selectedOrderDetails.order) : (
                                     selectedOrderDetails.order.paymentStatus === 'rejected' ? (
                                         <span className="inline-flex items-center gap-1 text-red-700 dark:text-red-300 font-semibold bg-red-100 dark:bg-red-900/50 px-2.5 py-1 rounded-md text-xs">
                                             <AlertCircle className="w-3 h-3" /> Payment Rejected
@@ -511,11 +550,22 @@ const UnifiedOrderCard = ({ order, statusBadge, faded = false, confirmingId, han
                     <button
                         onClick={() => handleNotReceived(order._id)}
                         disabled={confirmingId === order._id}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/10 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 font-bold py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-900/30 transition-all active:scale-95"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/20"
                     >
                         <AlertCircle className="h-5 w-5" />
-                        Not Received?
+                        {confirmingId === order._id ? 'Processing...' : 'Not Received?'}
                     </button>
+                )}
+
+                {/* Refund button — if received and no active refund */}
+                {order.isReceivedByUser && (!order.refundStatus || order.refundStatus === 'none' || order.refundStatus === 'rejected') && (
+                    <Link
+                        to={`/order/${order._id}`}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold py-3 px-6 rounded-xl border border-amber-200 dark:border-amber-800/30 transition-all active:scale-95 shadow-sm"
+                    >
+                        <RotateCcw className="h-4 w-4" />
+                        Refund / Return
+                    </Link>
                 )}
             </div>
         </div>
@@ -630,7 +680,7 @@ const ReviewModal = ({ order, onClose, user }) => {
 };
 
 // Extracted Orders Table view for mapping array
-const OrdersTable = ({ orders, onViewDetails, getStatusBadge }) => (
+const OrdersTable = ({ orders, onViewDetails, getStatusBadge, handleNotReceived, handleConfirmReceived, confirmingId }) => (
     <div className="overflow-x-auto w-full">
         <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead className="bg-slate-50 dark:bg-[#1e2330]">
@@ -676,12 +726,45 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge }) => (
                             </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                                onClick={() => onViewDetails(order)}
-                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-bold px-4 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/40 transition-colors"
-                            >
-                                Details
-                            </button>
+                            <div className="flex items-center justify-end gap-2">
+                                {/* Refund Button: Only for received orders with no active refund process */}
+                                {order.isReceivedByUser && (!order.refundStatus || order.refundStatus === 'none' || order.refundStatus === 'rejected') && (
+                                    <Link
+                                        to={`/order/${order._id}`}
+                                        className="text-amber-600 dark:text-amber-400 hover:text-amber-700 font-bold px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 transition-colors flex items-center gap-1.5"
+                                    >
+                                        <RotateCcw className="w-3.5 h-3.5" /> Refund
+                                    </Link>
+                                )}
+                                
+                                {!!order.isShipped && !order.isReceivedByUser && (
+                                    <button
+                                        onClick={() => handleConfirmReceived?.(order._id)}
+                                        disabled={confirmingId === order._id}
+                                        className="text-white font-bold px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-60 transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                                    >
+                                        <CheckCircle className="w-3.5 h-3.5" /> {confirmingId === order._id ? '...' : 'Received?'}
+                                    </button>
+                                )}
+
+                                {/* Not Received Button: Only for shipped orders that aren't confirmed received yet */}
+                                {!!order.isShipped && !order.isReceivedByUser && (
+                                    <button
+                                        onClick={() => handleNotReceived?.(order._id)}
+                                        disabled={confirmingId === order._id}
+                                        className="text-white font-bold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-60 transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                                    >
+                                        <AlertCircle className="w-3.5 h-3.5" /> {confirmingId === order._id ? '...' : 'Not Received?'}
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => onViewDetails(order)}
+                                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-bold px-4 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/40 transition-colors"
+                                >
+                                    Details
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 ))}
