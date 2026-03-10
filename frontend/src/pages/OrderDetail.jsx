@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Package, ArrowLeft, MapPin, CreditCard, CheckCircle, Truck, Clock, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, CreditCard, CheckCircle, Truck, Clock, AlertCircle, ShoppingBag, RotateCcw } from 'lucide-react';
 import { OrderSkeleton } from '../components/Skeletons';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
@@ -13,6 +13,9 @@ const OrderDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [reporting, setReporting] = useState(false);
+    const [showRefundForm, setShowRefundForm] = useState(false);
+    const [refundReason, setRefundReason] = useState('');
+    const [submittingRefund, setSubmittingRefund] = useState(false);
 
     const fetchOrder = async () => {
         try {
@@ -56,6 +59,35 @@ const OrderDetail = () => {
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(`Error: ${err.message || 'Unknown error'}`);
+                fetchOrder();
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setReporting(false);
+        }
+    };
+
+    const handleConfirmReceived = async () => {
+        setReporting(true);
+        try {
+            const res = await fetch(`/api/orders/${id}/received`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}` 
+                },
+            });
+
+            if (res.ok) {
+                toast.success('Order confirmed received!');
+                fetchOrder();
+                // If on details page, we might want to navigate back to cart so they see the review popup
+                // but for now just refresh
+            } else {
+                const err = await res.json().catch(() => ({}));
+                toast.error(`Error: ${err.message || 'Unknown error'}`);
             }
         } catch (err) {
             console.error(err);
@@ -74,6 +106,9 @@ const OrderDetail = () => {
     };
 
     const getStatusInfo = (order) => {
+        if (order.refundStatus === 'requested') return { label: 'Refund Requested', color: 'amber', icon: RotateCcw };
+        if (order.refundStatus === 'approved') return { label: 'Refunded', color: 'emerald', icon: CheckCircle };
+        if (order.notReceivedCount > 0 && !order.isShipped) return { label: 'Reported Missing', color: 'red', icon: AlertCircle };
         if (order.isReceivedByUser) return { label: 'Received', color: 'emerald', icon: CheckCircle };
         if (order.paymentStatus === 'rejected') return { label: 'Payment Rejected', color: 'red', icon: AlertCircle };
         if (order.isShipped) return { label: 'Shipped', color: 'indigo', icon: Package };
@@ -159,22 +194,28 @@ const OrderDetail = () => {
                 </div>
 
                 {/* Actions */}
-                {(order.isShipped || order.isDelivered) && !order.isReceivedByUser && !isRejected && (
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse-subtle">
-                        <div className="flex items-start gap-3">
-                            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-bold text-amber-900 dark:text-amber-400">Parcel taking too long?</p>
-                                <p className="text-sm text-amber-700 dark:text-amber-500">If you haven't received your order yet, click the button to notify the admin.</p>
-                            </div>
+                {order.isShipped && !order.isReceivedByUser && !isRejected && (
+                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="flex-1">
+                            <h4 className="font-bold text-[var(--color-text-main)] text-xl mb-1">Track Your Parcel 📦</h4>
+                            <p className="text-sm text-[var(--color-text-muted)]">Please confirm once you receive your package, or report if it's missing.</p>
                         </div>
-                        <button
-                            onClick={handleReportNotReceived}
-                            disabled={reporting}
-                            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
-                        >
-                            {reporting ? 'Reporting...' : 'Report Not Received'}
-                        </button>
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                            <button
+                                onClick={handleConfirmReceived}
+                                disabled={reporting}
+                                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-green-600/20 active:scale-95 whitespace-nowrap"
+                            >
+                                {reporting ? '...' : 'Confirm Received'}
+                            </button>
+                            <button
+                                onClick={handleReportNotReceived}
+                                disabled={reporting}
+                                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-95 whitespace-nowrap"
+                            >
+                                {reporting ? '...' : 'Not Received?'}
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -347,6 +388,115 @@ const OrderDetail = () => {
                             alt="Transaction Screenshot"
                             className="max-w-sm w-full rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
                         />
+                    </div>
+                )}
+
+                {/* Refund / Return Section */}
+                {order.isReceivedByUser && (
+                    <div className="bg-[var(--color-surface)] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
+                        <div className="px-6 sm:px-10 py-5 border-b border-slate-100 dark:border-slate-800">
+                            <h2 className="text-lg font-bold text-[var(--color-text-main)] flex items-center gap-2">
+                                <RotateCcw className="h-5 w-5 text-amber-500" /> Return / Refund
+                            </h2>
+                        </div>
+                        <div className="px-6 sm:px-10 py-6">
+                            {order.refundStatus === 'approved' ? (
+                                <div className="flex items-start gap-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 p-4 rounded-xl">
+                                    <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-bold text-green-800 dark:text-green-300">Refund Approved</p>
+                                        <p className="text-sm text-green-700 dark:text-green-400 mt-1">Your refund of {formatCurrency(order.totalPrice)} has been approved and will be processed.</p>
+                                        {order.refundAdminNote && <p className="text-sm text-green-600 dark:text-green-500 mt-2 italic">Admin note: "{order.refundAdminNote}"</p>}
+                                    </div>
+                                </div>
+                            ) : order.refundStatus === 'rejected' ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 p-4 rounded-xl">
+                                        <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-red-800 dark:text-red-300">Refund Rejected</p>
+                                            <p className="text-sm text-red-700 dark:text-red-400 mt-1">Your refund request was not approved.</p>
+                                            {order.refundAdminNote && <p className="text-sm text-red-600 dark:text-red-500 mt-2 italic">Reason: "{order.refundAdminNote}"</p>}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowRefundForm(true)}
+                                        className="text-sm font-semibold text-amber-600 hover:text-amber-700"
+                                    >
+                                        Request again?
+                                    </button>
+                                </div>
+                            ) : order.refundStatus === 'requested' ? (
+                                <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 p-4 rounded-xl">
+                                    <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                                    <div>
+                                        <p className="font-bold text-amber-800 dark:text-amber-300">Refund Request Pending</p>
+                                        <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">Your request has been submitted and is being reviewed by our team.</p>
+                                        <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">Reason: "{order.refundReason}"</p>
+                                    </div>
+                                </div>
+                            ) : showRefundForm ? (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-[var(--color-text-muted)]">Please tell us why you'd like to return this order:</p>
+                                    <textarea
+                                        value={refundReason}
+                                        onChange={(e) => setRefundReason(e.target.value)}
+                                        placeholder="Describe the reason for your return/refund request..."
+                                        rows={3}
+                                        className="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-[var(--color-background)] text-[var(--color-text-main)] focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                                    />
+                                    <div className="flex gap-3">
+                                        <button
+                                            disabled={submittingRefund || !refundReason.trim()}
+                                            onClick={async () => {
+                                                setSubmittingRefund(true);
+                                                try {
+                                                    const res = await fetch(`/api/orders/${id}/request-refund`, {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
+                                                        body: JSON.stringify({ reason: refundReason })
+                                                    });
+                                                    if (res.ok) {
+                                                        toast.success('Refund request submitted! We\'ll review it soon.');
+                                                        setShowRefundForm(false);
+                                                        fetchOrder();
+                                                    } else {
+                                                        const data = await res.json();
+                                                        toast.error(data.message || 'Failed to submit refund request');
+                                                    }
+                                                } catch (err) {
+                                                    toast.error('Network error. Please try again.');
+                                                } finally {
+                                                    setSubmittingRefund(false);
+                                                }
+                                            }}
+                                            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md active:scale-95"
+                                        >
+                                            <RotateCcw className="h-4 w-4" />
+                                            {submittingRefund ? 'Submitting...' : 'Submit Refund Request'}
+                                        </button>
+                                        <button
+                                            onClick={() => setShowRefundForm(false)}
+                                            className="px-5 py-3 font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm text-[var(--color-text-muted)]">Not satisfied with your order? You can request a return or refund.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowRefundForm(true)}
+                                        className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold py-2.5 px-5 rounded-xl border border-amber-200 dark:border-amber-800/30 transition-all"
+                                    >
+                                        <RotateCcw className="h-4 w-4" /> Request Return/Refund
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 

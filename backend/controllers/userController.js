@@ -467,6 +467,39 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// @desc    Export all users as CSV
+// @route   GET /api/users/export-csv
+// @access  Admin
+const exportUsersCsv = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer')) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+        const reqUser = await User.findById(decoded.id);
+        if (!reqUser || reqUser.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized as admin' });
+        }
+
+        const users = await User.find({}).select('-password -resetPasswordToken -resetPasswordExpire').sort({ createdAt: -1 });
+
+        const header = 'Name,Email,Role,Student Verified,Verification Status,Joined Date\n';
+        const rows = users.map(u => {
+            const name = (u.name || 'N/A').replace(/,/g, ' ');
+            const email = (u.email || 'N/A').replace(/,/g, ' ');
+            const date = new Date(u.createdAt).toLocaleDateString('en-GB');
+            return `${name},${email},${u.role},${u.isStudentVerified ? 'Yes' : 'No'},${u.studentVerificationStatus || 'none'},${date}`;
+        }).join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=educart_users.csv');
+        res.send(header + rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports = {
     registerUser,
@@ -479,4 +512,5 @@ module.exports = {
     getPendingVerifications,
     reviewStudentVerification,
     getAllUsers,
+    exportUsersCsv,
 };

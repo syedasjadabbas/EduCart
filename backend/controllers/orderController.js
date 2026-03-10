@@ -293,11 +293,13 @@ const reportNotReceived = async (req, res) => {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
-        // Reset shipped and delivered status
+        // Reset shipped and delivered status completely
         order.isShipped = false;
         order.shippedAt = null;
         order.isDelivered = false;
         order.deliveredAt = null;
+        order.isReceivedByUser = false; 
+        order.receivedAt = null;
 
         // Log the report
         order.notReceivedCount = (order.notReceivedCount || 0) + 1;
@@ -425,6 +427,196 @@ const rejectPayment = async (req, res) => {
     }
 };
 
+// @desc    Export all orders as CSV
+// @route   GET /api/orders/export-csv
+// @access  Admin
+const exportOrdersCsv = async (req, res) => {
+    try {
+        const orders = await Order.find({}).populate('user', 'name email').sort({ createdAt: -1 });
+
+        const header = 'Order ID,Customer Name,Email,Date,Items,Total,Payment Status,Shipped,Received,Refund Status\n';
+        const rows = orders.map(o => {
+            const name = (o.contactInfo?.name || o.user?.name || 'N/A').replace(/,/g, ' ');
+            const email = (o.contactInfo?.email || o.user?.email || 'N/A').replace(/,/g, ' ');
+            const date = new Date(o.createdAt).toLocaleDateString('en-GB');
+            const items = o.orderItems.map(i => `${i.name} x${i.qty}`).join(' | ').replace(/,/g, ' ');
+            return `${o._id},${name},${email},${date},"${items}",${o.totalPrice},${o.paymentStatus},${o.isShipped ? 'Yes' : 'No'},${o.isReceivedByUser ? 'Yes' : 'No'},${o.refundStatus || 'none'}`;
+        }).join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=educart_orders.csv');
+        res.send(header + rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    User requests a refund/return
+// @route   PUT /api/orders/:id/request-refund
+// @access  Private
+const requestRefund = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (!order.isReceivedByUser) {
+            return res.status(400).json({ message: 'You can only request a refund after receiving the order.' });
+        }
+        if (order.refundStatus === 'requested') {
+            return res.status(400).json({ message: 'A refund request is already pending for this order.' });
+        }
+        if (order.refundStatus === 'approved') {
+            return res.status(400).json({ message: 'This order has already been refunded.' });
+        }
+
+        order.refundStatus = 'requested';
+        order.refundReason = req.body.reason || 'No reason provided';
+        order.refundRequestedAt = Date.now();
+        order.refundAdminNote = null;
+        await order.save();
+
+        // Email admin about refund request
+        const userName = order.contactInfo?.name || 'A customer';
+        const userEmail = order.contactInfo?.email || 'N/A';
+        const adminEmailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">🔄 Refund Request</h1>
+                </div>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="font-size: 16px; color: #374151;"><strong>${userName}</strong> (${userEmail}) has requested a refund for order <strong>#${order._id}</strong>.</p>
+                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #f59e0b;">
+                        <h3 style="margin-top: 0; color: #92400e;">Reason</h3>
+                        <p style="margin: 0; color: #78350f;">"${order.refundReason}"</p>
+                    </div>
+                    <p style="color: #475569;">Order Total: <strong>Rs ${order.totalPrice.toLocaleString()}</strong></p>
+                    <p style="text-align: center; margin-top: 24px;"><span style="display: inline-block; padding: 12px 24px; background-color: #fffbeb; border-radius: 8px; color: #92400e; font-weight: bold; border: 1px solid #fde68a;">Please review this request in the Admin Dashboard.</span></p>
+                </div>
+            </div>
+        `;
+        await sendEmail({
+            email: 'asjadabbaszaidi@gmail.com',
+            subject: `🔄 REFUND REQUEST - Order #${order._id}`,
+            html: adminEmailHtml
+        });
+
+        const updated = await Order.findById(order._id).populate('user', 'name email');
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Admin approves or rejects refund
+// @route   PUT /api/orders/:id/process-refund
+// @access  Admin
+const processRefund = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('user', 'name email');
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (order.refundStatus !== 'requested') {
+            return res.status(400).json({ message: 'No pending refund request for this order.' });
+        }
+
+        const { status, adminNote } = req.body; // status = 'approved' or 'rejected'
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Status must be "approved" or "rejected".' });
+        }
+
+        order.refundStatus = status;
+        order.refundAdminNote = adminNote || null;
+        order.refundProcessedAt = Date.now();
+        await order.save();
+
+        // Email user about refund decision
+        const userEmail = order.contactInfo?.email || order.user?.email;
+        if (userEmail) {
+            const userName = order.contactInfo?.name || 'Valued Customer';
+            const isApproved = status === 'approved';
+            const emailHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                    <div style="background-color: ${isApproved ? '#10b981' : '#ef4444'}; padding: 24px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">${isApproved ? '✅ Refund Approved' : '❌ Refund Rejected'}</h1>
+                    </div>
+                    <div style="padding: 32px; background-color: white;">
+                        <p style="font-size: 16px; color: #374151;">Hi <strong>${userName}</strong>,</p>
+                        <p style="font-size: 16px; color: #374151;">Your refund request for order <strong>#${order._id}</strong> has been <strong>${isApproved ? 'approved' : 'rejected'}</strong>.</p>
+                        ${isApproved ? `<p style="color: #059669; font-weight: bold;">Amount: Rs ${order.totalPrice.toLocaleString()} will be refunded to your original payment method.</p>` : ''}
+                        ${adminNote ? `<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;"><h4 style="margin-top: 0; color: #475569;">Admin Note</h4><p style="margin: 0; color: #64748b;">"${adminNote}"</p></div>` : ''}
+                        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                            <p style="font-size: 14px; color: #6b7280;">Thanks for shopping with EduCart!</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            await sendEmail({ email: userEmail, subject: `${isApproved ? '✅' : '❌'} Refund ${isApproved ? 'Approved' : 'Rejected'} — Order #${order._id}`, html: emailHtml });
+        }
+
+        const updated = await Order.findById(order._id).populate('user', 'name email');
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Admin reships order after "Not Received" report
+// @route   PUT /api/orders/:id/reship
+// @access  Admin
+const reshipOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('user', 'name email');
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        order.isShipped = true;
+        order.shippedAt = Date.now();
+        order.isReceivedByUser = false; // Just in case
+        
+        // Mark the latest report as "Handled/Reshipped"
+        if (order.notReceivedReports && order.notReceivedReports.length > 0) {
+            const lastReport = order.notReceivedReports[order.notReceivedReports.length - 1];
+            lastReport.adminAction = 'Reshipped';
+            lastReport.actionDate = Date.now();
+        }
+
+        const updatedOrder = await order.save();
+
+        // Notify User via fresh Shipping Email
+        const userEmail = order.contactInfo?.email || order.user?.email;
+        if (userEmail) {
+            const userName = order.contactInfo?.name || order.user?.name || 'Valued Customer';
+            const emailHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, #10b981, #3b82f6); padding: 24px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">Your Order has been RE-SHIPPED! 🚀</h1>
+                    </div>
+                    <div style="padding: 32px; background-color: white;">
+                        <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">Hi <strong>${userName}</strong>,</p>
+                        <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
+                            We received your report about order <strong>#${order._id}</strong> not being delivered. We've investigated and **sent your package again!**
+                        </p>
+                        <div style="background-color: #ecfdf5; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #10b981;">
+                            <p style="margin: 0; font-size: 15px; color: #065f46;">
+                                <strong>Status:</strong> Re-shipped Today<br/>
+                                <strong>Shipping to:</strong> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}
+                            </p>
+                        </div>
+                        <p style="font-size: 16px; color: #374151; line-height: 1.5;">We hope it reaches you soon this time! You can track it in your dashboard.</p>
+                        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                            <p style="font-size: 14px; color: #6b7280; margin: 0;">Thanks for your patience with EduCart!</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            await sendEmail({ email: userEmail, subject: '🚀 RE-SHIPPED: Your EduCart Order is on its way (Again!)', html: emailHtml });
+        }
+
+        res.json(updatedOrder);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     addOrderItems,
     getOrders,
@@ -435,4 +627,8 @@ module.exports = {
     reportNotReceived,
     approvePayment,
     rejectPayment,
+    exportOrdersCsv,
+    requestRefund,
+    processRefund,
+    reshipOrder,
 };
