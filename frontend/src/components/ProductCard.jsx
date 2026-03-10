@@ -12,15 +12,34 @@ const ProductCard = ({ product }) => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    const getGlowColor = (cat) => {
+        const colors = {
+            stationery: 'rgba(79, 70, 229, 0.4)', // Indigo
+            gadgets: 'rgba(245, 158, 11, 0.4)',    // Amber
+            laptop: 'rgba(59, 130, 246, 0.4)',    // Blue
+            backpacks: 'rgba(16, 185, 129, 0.4)', // Emerald
+            desk: 'rgba(139, 92, 246, 0.4)',      // Violet
+            bottles: 'rgba(6, 182, 212, 0.4)',    // Cyan
+        };
+        return colors[cat?.toLowerCase()] || 'rgba(59, 130, 246, 0.3)';
+    };
+
+    const glowColor = getGlowColor(product.category);
+
     return (
         <div
-            className="bg-[var(--color-surface)] rounded-2xl overflow-hidden glass-panel hover-lift relative group"
+            className={`bg-[var(--color-surface)] rounded-2xl overflow-hidden glass-panel relative group transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border border-transparent`}
+            style={{
+                boxShadow: isHovered ? `0 20px 40px -15px ${glowColor}` : 'none',
+                transform: isHovered ? 'translateY(-8px)' : 'none',
+                borderColor: isHovered ? glowColor.replace('0.4', '0.2') : 'transparent'
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             {/* Discount Badge */}
             {product.discount > 0 && (
-                <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10 shadow-sm">
+                <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md z-10 shadow-lg shadow-red-500/20 backdrop-blur-sm">
                     -{product.discount}% Student Offer
                 </div>
             )}

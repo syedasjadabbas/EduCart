@@ -210,14 +210,54 @@ const Home = () => {
     }
 
     const popularProducts = products.filter(p => !featuredProducts.includes(p)).slice(0, 4);
+    
+    // New: Elite/Premium tech picks
+    const elitePicks = products.filter(p => 
+        (p.category === 'gadgets' || p.category === 'laptop') && 
+        !featuredProducts.includes(p) && 
+        !popularProducts.includes(p)
+    ).slice(0, 4);
+
+    if (elitePicks.length < 4 && products.length > 8) {
+        elitePicks.push(...products.filter(p => 
+            !featuredProducts.includes(p) && 
+            !popularProducts.includes(p) && 
+            !elitePicks.includes(p)
+        ).slice(0, 4 - elitePicks.length));
+    }
+
+    const [scrollY, setScrollY] = useState(0);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        const handleMouseMove = (e) => {
+            setMousePos({
+                x: (e.clientX / window.innerWidth - 0.5) * 20,
+                y: (e.clientY / window.innerHeight - 0.5) * 20
+            });
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
 
     return (
         <div className="relative bg-[var(--color-background)] min-h-screen overflow-hidden">
-            {/* Dynamic Background Blurs */}
-            <div className="absolute top-0 left-1/4 -z-0 w-[50rem] h-[50rem] bg-blue-500/10 rounded-full blur-[150px] animate-pulse pointer-events-none" />
-            <div className="absolute bottom-0 right-1/4 -z-0 w-[40rem] h-[40rem] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+            {/* Dynamic Background Blurs with Parallax */}
+            <div 
+                className="absolute top-0 left-1/4 -z-0 w-[50rem] h-[50rem] bg-blue-500/10 rounded-full blur-[150px] animate-pulse pointer-events-none"
+                style={{ transform: `translateY(${scrollY * 0.2}px)` }}
+            />
+            <div 
+                className="absolute bottom-0 right-1/4 -z-0 w-[40rem] h-[40rem] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"
+                style={{ transform: `translateY(${-scrollY * 0.15}px)` }}
+            />
 
-            <div className="relative z-10 animate-fade-in-up">
+            <div className="relative z-10">
                 {/* 🚀 PREMIUM HERO SECTION */}
                 <section className="relative px-4 sm:px-6 lg:px-8 pt-4 pb-12 lg:pt-8 lg:pb-16 text-[var(--color-text-main)]">
                     <div className="max-w-7xl mx-auto">
@@ -226,7 +266,7 @@ const Home = () => {
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                                <div className="text-center lg:text-left relative z-10">
+                                <div className="text-center lg:text-left relative z-10" style={{ transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)` }}>
                                     {/* Personal Welcome Banner */}
                                     <div className="flex flex-wrap items-center justify-center lg:justify-start mb-10">
                                         {user && (
@@ -241,7 +281,7 @@ const Home = () => {
                                         )}
                                     </div>
 
-                                    <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight mb-8 leading-[0.95]">
+                                    <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight mb-8 leading-[0.95] drop-shadow-[0_2px_10px_rgba(37,99,235,0.15)]">
                                         Essential Store <br />
                                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 animate-gradient">For Students</span>
                                     </h1>
@@ -267,7 +307,7 @@ const Home = () => {
                                 </div>
 
                                 {/* Floating 3D Elements Area */}
-                                <div className="relative hidden lg:block">
+                                <div className="relative hidden lg:block" style={{ transform: `translate(${mousePos.x * -0.5}px, ${mousePos.y * -0.5}px)` }}>
                                     <div className="relative w-full aspect-square bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full animate-pulse p-10">
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <div className="relative p-2 rounded-[4rem] bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl transform rotate-6 animate-float overflow-hidden">
@@ -281,7 +321,7 @@ const Home = () => {
                                         </div>
 
                                         {/* Floating Badge Widgets */}
-                                        <div className="absolute top-10 right-0 glass-panel p-6 pr-10 rounded-[2.5rem] shadow-2xl animate-float border-white/20 dark:border-white/10" style={{ animationDelay: '1s' }}>
+                                        <div className="absolute top-10 right-0 glass-panel p-6 pr-10 rounded-[2.5rem] shadow-2xl animate-float border-white/20 dark:border-white/10" style={{ animationDelay: '1s', transform: `translate(${mousePos.x * 0.8}px, ${mousePos.y * 0.8}px)` }}>
                                             <div className="flex items-center gap-4">
                                                 <div className="p-3 bg-emerald-500/20 rounded-2xl">
                                                     <Tag className="w-7 h-7 text-emerald-500 rotate-12" />
@@ -293,7 +333,7 @@ const Home = () => {
                                             </div>
                                         </div>
 
-                                        <div className="absolute bottom-10 -left-6 glass-panel p-6 pr-10 rounded-[2.5rem] shadow-2xl animate-float border-white/20 dark:border-white/10" style={{ animationDelay: '2s' }}>
+                                        <div className="absolute bottom-10 -left-6 glass-panel p-6 pr-10 rounded-[2.5rem] shadow-2xl animate-float border-white/20 dark:border-white/10" style={{ animationDelay: '2s', transform: `translate(${mousePos.x * 0.5}px, ${mousePos.y * 0.5}px)` }}>
                                             <div className="flex items-center gap-4">
                                                 <div className="p-3 bg-blue-500/20 rounded-2xl">
                                                     <Truck className="w-7 h-7 text-blue-500" />
@@ -358,25 +398,20 @@ const Home = () => {
                     </section>
                 )}
 
-                {/* 📦 CATEGORY ORBS */}
-                <section className="py-12">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex items-end justify-between mb-16 px-4">
-                            <div>
-                                <h2 className="text-4xl font-black text-[var(--color-text-main)] tracking-tight">Shop Categories</h2>
-                                <p className="text-[var(--color-text-muted)] text-xl font-medium mt-2">Precision gear for every study session.</p>
-                            </div>
-                            <Link to="/shop" className="hidden sm:flex items-center gap-2 text-blue-600 hover:text-blue-700 font-black text-lg transition-colors group">
-                                Browse All Categories <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                            {categories.map((cat, idx) => (
+                {/* 📦 CATEGORY MARQUEE */}
+                <section className="py-24 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-t border-white/20 dark:border-white/5 overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 text-center">
+                        <h2 className="text-3xl font-black text-[var(--color-text-main)] tracking-tight">Explore Categories</h2>
+                        <p className="text-[var(--color-text-muted)] mt-2 font-medium">Precision gear for every study session, drifting into view.</p>
+                    </div>
+                    
+                    <div className="relative flex overflow-x-hidden group">
+                        <div className="py-8 animate-marquee whitespace-nowrap flex items-center">
+                            {[...categories, ...categories, ...categories].map((cat, idx) => (
                                 <Link
                                     key={idx}
                                     to={cat.route}
-                                    className="group flex flex-col items-center p-8 glass-panel rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-500"
+                                    className="mx-6 group flex flex-col items-center p-8 glass-panel rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-500 min-w-[220px]"
                                 >
                                     <div className={`p-6 rounded-[2rem] bg-gradient-to-br ${cat.color} text-white mb-6 shadow-xl transform group-hover:rotate-6 transition-all duration-500 relative`}>
                                         <div className="absolute inset-0 bg-white/20 rounded-[2rem] blur-sm group-hover:blur-none transition-all" />
@@ -407,7 +442,7 @@ const Home = () => {
                                     Hand-picked tools designed to make your semester smoother and more efficient.
                                 </p>
                             </div>
-                            <Link to="/shop" className="group px-8 py-4 glass-panel text-[var(--color-text-main)] font-bold rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                            <Link to="/shop" className="group px-8 py-4 glass-panel text-[var(--color-text-main)] font-bold rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
                                 View Entire Store <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                             </Link>
                         </div>
@@ -418,6 +453,36 @@ const Home = () => {
                             ) : (
                                 featuredProducts.map((product) => (
                                     <div key={product._id} className="relative group p-1 glass-panel rounded-[2.5rem] bg-white/20 dark:bg-slate-900/20 shadow-lg hover:shadow-2xl transition-all duration-700">
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* 🚀 NEW: ELITE TECH & PERFORMANCE SECTION */}
+                <section className="py-20 relative overflow-hidden">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[500px] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
+                    
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <div className="flex flex-col items-center text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold text-xs uppercase tracking-widest rounded-full mb-4 border border-indigo-200/50">
+                                <Laptop className="w-4 h-4" /> Elite Performance
+                            </div>
+                            <h2 className="text-5xl font-black text-[var(--color-text-main)] tracking-tight">Elite Tech & Accessories</h2>
+                            <p className="text-[var(--color-text-muted)] text-xl font-medium mt-4 max-w-3xl mx-auto leading-relaxed">
+                                Level up your setup with our premium selection of study gadgets and tech essentials.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                            {products.length === 0 ? (
+                                [1, 2, 3, 4].map(i => <ProductSkeleton key={`e-${i}`} />)
+                            ) : (
+                                elitePicks.map((product) => (
+                                    <div key={product._id} className="relative group p-1 glass-panel rounded-[2.5rem] bg-white/10 dark:bg-slate-900/30 shadow-xl hover:shadow-2xl transition-all duration-700">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-[2.5rem] pointer-events-none" />
                                         <ProductCard product={product} />
                                     </div>
                                 ))
@@ -445,6 +510,8 @@ const Home = () => {
                         </div>
                     </div>
                 </section>
+
+
             </div>
         </div>
     );

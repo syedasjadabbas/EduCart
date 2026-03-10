@@ -278,6 +278,7 @@ const confirmOrderReceived = async (req, res) => {
 
         order.isReceivedByUser = true;
         order.receivedAt = Date.now();
+        order.notReceivedCount = 0; // Clear reports as it is now received
         const updatedOrder = await order.save();
         res.json(updatedOrder);
     } catch (error) {
