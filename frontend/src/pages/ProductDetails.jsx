@@ -6,6 +6,8 @@ import AuthContext from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -172,7 +174,7 @@ const ProductDetails = () => {
                             onMouseLeave={handleMouseLeave}
                         >
                             <img
-                                src={product.image}
+                                src={getImageUrl(product.image)}
                                 alt={product.name}
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />

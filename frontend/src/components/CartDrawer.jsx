@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const CartDrawer = ({ isOpen, onClose }) => {
     const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
@@ -69,7 +71,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                         cartItems.map((item) => (
                             <div key={item._id} className="flex gap-4 bg-[var(--color-background)] p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
                                 <div className="h-20 w-20 rounded-xl overflow-hidden bg-slate-200 shrink-0">
-                                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                                    <img src={getImageUrl(item.image)} alt={item.name} className="h-full w-full object-cover" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col">

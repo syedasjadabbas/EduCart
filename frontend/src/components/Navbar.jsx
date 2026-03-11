@@ -4,6 +4,8 @@ import { useContext, useState, useEffect } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const Navbar = () => {
     const { isDark, toggleTheme } = useContext(ThemeContext);
@@ -118,7 +120,7 @@ const Navbar = () => {
                                                 </div>
                                             )}
                                             {user.profilePicture ? (
-                                                <img src={`http://localhost:5000${user.profilePicture}`} alt={user.name} className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(user.profilePicture)} alt={user.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-sm font-bold text-blue-600">{user.name?.charAt(0).toUpperCase()}</span>
                                             )}
@@ -199,7 +201,7 @@ const Navbar = () => {
                                 <>
                                     <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2">
                                         {user.profilePicture ? (
-                                            <img src={`http://localhost:5000${user.profilePicture}`} alt={user.name} className="w-7 h-7 rounded-full object-cover border border-blue-300" />
+                                            <img src={getImageUrl(user.profilePicture)} alt={user.name} className="w-7 h-7 rounded-full object-cover border border-blue-300" />
                                         ) : (
                                             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
                                                 <span className="text-xs font-bold text-blue-600">{user.name?.charAt(0).toUpperCase()}</span>

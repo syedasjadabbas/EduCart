@@ -2,6 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import { Users, Search, AlertCircle, CheckCircle, Clock, Download } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const UserManagementPanel = () => {
     const { user } = useContext(AuthContext);
@@ -104,7 +106,7 @@ const UserManagementPanel = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center gap-3">
                                         {u.profilePicture ? (
-                                            <img src={`http://localhost:5000${u.profilePicture}`} alt={u.name} className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                                            <img src={getImageUrl(u.profilePicture)} alt={u.name} className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
                                         ) : (
                                             <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold border border-indigo-200 dark:border-indigo-800">
                                                 {u.name.charAt(0).toUpperCase()}

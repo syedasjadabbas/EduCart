@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DollarSign, TrendingUp, Package, CreditCard } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const RevenueDashboard = ({ orders }) => {
     // Process data
@@ -159,7 +161,7 @@ const RevenueDashboard = ({ orders }) => {
                             <div key={idx} className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                     {product.image ? (
-                                        <img src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`} alt={product.name} className="h-full w-full object-cover" />
+                                        <img src={getImageUrl(product.image)} alt={product.name} className="h-full w-full object-cover" />
                                     ) : (
                                         <Package className="h-6 w-6 text-slate-400" />
                                     )}

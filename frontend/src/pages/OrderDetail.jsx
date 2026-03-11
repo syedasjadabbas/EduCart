@@ -5,6 +5,8 @@ import { OrderSkeleton } from '../components/Skeletons';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const OrderDetail = () => {
     const { id } = useParams();
@@ -316,7 +318,7 @@ const OrderDetail = () => {
                             <div key={item._id || idx} className="px-6 sm:px-10 py-5 flex items-center gap-5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                 <Link to={`/product/${item.product}`} className="shrink-0">
                                     <img
-                                        src={item.image}
+                                        src={getImageUrl(item.image)}
                                         alt={item.name}
                                         className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-slate-100 dark:bg-slate-800 object-cover shadow-sm hover:shadow-md transition-shadow hover:scale-105 transform"
                                     />
@@ -391,7 +393,7 @@ const OrderDetail = () => {
                             <CreditCard className="h-5 w-5 text-blue-500" /> Payment Screenshot
                         </h3>
                         <img
-                            src={`http://localhost:5000${order.transactionScreenshot}`}
+                            src={getImageUrl(order.transactionScreenshot)}
                             alt="Transaction Screenshot"
                             className="max-w-sm w-full rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
                         />

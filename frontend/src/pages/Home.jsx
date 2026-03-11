@@ -3,7 +3,7 @@ import { BookOpen, Laptop, Briefcase, PenTool, Coffee, Monitor, ArrowRight, Shie
 import ProductCard from '../components/ProductCard';
 import { ProductSkeleton } from '../components/Skeletons';
 import { formatCurrency } from '../utils/currency';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import AuthContext from '../context/AuthContext';
 
 const AdminHome = ({ user }) => {
@@ -233,12 +233,13 @@ const Home = () => {
         const handleScroll = () => setScrollY(window.scrollY);
         const handleMouseMove = (e) => {
             setMousePos({
-                x: (e.clientX / window.innerWidth - 0.5) * 20,
-                y: (e.clientY / window.innerHeight - 0.5) * 20
+                x: (e.clientX / window.innerWidth - 0.5) * 50,
+                y: (e.clientY / window.innerHeight - 0.5) * 50
             });
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('mousemove', handleMouseMove);
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             window.removeEventListener('mousemove', handleMouseMove);
@@ -249,12 +250,12 @@ const Home = () => {
         <div className="relative bg-[var(--color-background)] min-h-screen overflow-hidden">
             {/* Dynamic Background Blurs with Parallax */}
             <div 
-                className="absolute top-0 left-1/4 -z-0 w-[50rem] h-[50rem] bg-blue-500/10 rounded-full blur-[150px] animate-pulse pointer-events-none"
-                style={{ transform: `translateY(${scrollY * 0.2}px)` }}
+                className="absolute top-0 left-1/4 -z-0 w-[50rem] h-[50rem] bg-blue-500/10 rounded-full blur-[150px] animate-pulse pointer-events-none transition-transform duration-1000 ease-out"
+                style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}
             />
             <div 
-                className="absolute bottom-0 right-1/4 -z-0 w-[40rem] h-[40rem] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"
-                style={{ transform: `translateY(${-scrollY * 0.15}px)` }}
+                className="absolute bottom-0 right-1/4 -z-0 w-[40rem] h-[40rem] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none transition-transform duration-1000 ease-out"
+                style={{ transform: `translate(${mousePos.x * -1.5}px, ${mousePos.y * -1.5}px)` }}
             />
 
             <div className="relative z-10">

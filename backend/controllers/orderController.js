@@ -94,7 +94,7 @@ const addOrderItems = async (req, res) => {
                 </div>
             </div>
         `;
-        await sendEmail({ email: contactInfo.email, subject: 'Your EduCart Order Receipt', html: emailHtml });
+        sendEmail({ email: contactInfo.email, subject: 'Your EduCart Order Receipt', html: emailHtml }).catch(err => console.error('Order receipt email failed:', err.message));
 
         // Notification email to admin
         const adminEmailHtml = `
@@ -120,11 +120,11 @@ const addOrderItems = async (req, res) => {
                 </div>
             </div>
         `;
-        await sendEmail({
+        sendEmail({
             email: 'asjadabbaszaidi@gmail.com',
             subject: `NEW ORDER ALERT - Rs ${totalPrice.toLocaleString()}`,
             html: adminEmailHtml
-        });
+        }).catch(err => console.error('Admin order alert email failed:', err.message));
 
         res.status(201).json(createdOrder);
 
@@ -213,7 +213,7 @@ const updateOrderToShipped = async (req, res) => {
                     </div>
                 </div>
             `;
-            await sendEmail({ email: userEmail, subject: '📦 Your EduCart Order has been Shipped!', html: emailHtml });
+            sendEmail({ email: userEmail, subject: '📦 Your EduCart Order has been Shipped!', html: emailHtml }).catch(err => console.error('Shipping email failed:', err.message));
         }
 
         res.json(updatedOrder);
@@ -341,11 +341,11 @@ const reportNotReceived = async (req, res) => {
                 </div>
             </div>
         `;
-        await sendEmail({
+        sendEmail({
             email: 'asjadabbaszaidi@gmail.com',
             subject: `⚠️ NOT RECEIVED - Order #${order._id} (Report #${order.notReceivedCount})`,
             html: adminEmailHtml
-        });
+        }).catch(err => console.error('Not received admin email failed:', err.message));
 
         res.json(updatedOrder);
     } catch (error) {
@@ -415,11 +415,11 @@ const rejectPayment = async (req, res) => {
                     </div>
                 </div>
             `;
-            await sendEmail({
+            sendEmail({
                 email: userEmail,
                 subject: '⚠️ Important Update Regarding Your EduCart Order',
                 html: emailHtml,
-            });
+            }).catch(err => console.error('Payment rejection email failed:', err.message));
         }
 
         res.json(updated);
@@ -495,11 +495,11 @@ const requestRefund = async (req, res) => {
                 </div>
             </div>
         `;
-        await sendEmail({
+        sendEmail({
             email: 'asjadabbaszaidi@gmail.com',
             subject: `🔄 REFUND REQUEST - Order #${order._id}`,
             html: adminEmailHtml
-        });
+        }).catch(err => console.error('Refund request admin email failed:', err.message));
 
         const updated = await Order.findById(order._id).populate('user', 'name email');
         res.json(updated);
@@ -551,7 +551,7 @@ const processRefund = async (req, res) => {
                     </div>
                 </div>
             `;
-            await sendEmail({ email: userEmail, subject: `${isApproved ? '✅' : '❌'} Refund ${isApproved ? 'Approved' : 'Rejected'} — Order #${order._id}`, html: emailHtml });
+            sendEmail({ email: userEmail, subject: `${isApproved ? '✅' : '❌'} Refund ${isApproved ? 'Approved' : 'Rejected'} — Order #${order._id}`, html: emailHtml }).catch(err => console.error('Refund decision email failed:', err.message));
         }
 
         const updated = await Order.findById(order._id).populate('user', 'name email');
@@ -609,7 +609,7 @@ const reshipOrder = async (req, res) => {
                     </div>
                 </div>
             `;
-            await sendEmail({ email: userEmail, subject: '🚀 RE-SHIPPED: Your EduCart Order is on its way (Again!)', html: emailHtml });
+            sendEmail({ email: userEmail, subject: '🚀 RE-SHIPPED: Your EduCart Order is on its way (Again!)', html: emailHtml }).catch(err => console.error('Reship email failed:', err.message));
         }
 
         res.json(updatedOrder);

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { Check, X, Clock, BadgeCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const StudentVerificationDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -109,7 +111,7 @@ const StudentVerificationDashboard = () => {
                                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">ID Card Image</p>
                                 <div className="border-4 border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900 flex justify-center p-2">
                                     <img
-                                        src={`http://localhost:5000${selectedStudent.studentIdCard}`}
+                                        src={getImageUrl(selectedStudent.studentIdCard)}
                                         alt="Student ID"
                                         className="max-h-[500px] object-contain rounded-xl"
                                         onError={(e) => {
@@ -119,7 +121,7 @@ const StudentVerificationDashboard = () => {
                                     />
                                 </div>
                                 <div className="mt-4 flex justify-center">
-                                    <a href={`http://localhost:5000${selectedStudent.studentIdCard}`} target="_blank" rel="noreferrer" className="text-blue-500 font-medium text-sm hover:underline">
+                                    <a href={getImageUrl(selectedStudent.studentIdCard)} target="_blank" rel="noreferrer" className="text-blue-500 font-medium text-sm hover:underline">
                                         Open full size in new tab
                                     </a>
                                 </div>
