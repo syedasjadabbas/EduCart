@@ -6,6 +6,8 @@ import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const Cart = () => {
     const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
@@ -201,7 +203,7 @@ const Cart = () => {
                             {cartItems.map((item) => (
                                 <div key={item._id} className="bg-[var(--color-surface)] border border-slate-100 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex gap-5 items-center group hover:shadow-md transition-shadow">
                                     <Link to={`/product/${item._id}`} className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm">
-                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                        <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                     </Link>
                                     <div className="flex-1 min-w-0">
                                         <Link to={`/product/${item._id}`} className="font-bold text-[var(--color-text-main)] hover:text-blue-600 transition-colors line-clamp-1">{item.name}</Link>
@@ -515,7 +517,7 @@ const UnifiedOrderCard = ({ order, statusBadge, faded = false, confirmingId, han
                 {order.orderItems.map((item, idx) => (
                     <div key={item._id || idx} className="flex items-center gap-4">
                         <Link to={`/order/${order._id}`}>
-                            <img src={item.image} alt={item.name} className={`w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 object-cover hover:scale-105 transition-transform ${faded ? 'grayscale' : ''}`} />
+                            <img src={getImageUrl(item.image)} alt={item.name} className={`w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 object-cover hover:scale-105 transition-transform ${faded ? 'grayscale' : ''}`} />
                         </Link>
                         <div className="flex-1">
                             <Link to={`/order/${order._id}`} className="font-medium text-[var(--color-text-main)] text-sm hover:text-blue-600 transition-colors cursor-pointer">
@@ -633,7 +635,7 @@ const ReviewModal = ({ order, onClose, user }) => {
                             const isSubmitted = submittedData[item.product];
                             return (
                                 <div key={idx} className="border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-start md:items-center shadow-sm">
-                                    <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700" />
+                                    <img src={getImageUrl(item.image)} alt={item.name} className="w-20 h-20 rounded-lg object-cover bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700" />
                                     <div className="flex-1 w-full">
                                         <p className="font-bold text-[var(--color-text-main)] text-lg">{item.name}</p>
 
@@ -707,7 +709,7 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge, handleNotReceived,
                             {order.orderItems && order.orderItems.length > 0 ? (
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                                        <img src={order.orderItems[0].image?.startsWith('http') ? order.orderItems[0].image : `http://localhost:5000${order.orderItems[0].image}`} alt={order.orderItems[0].name} className="h-full w-full object-cover" />
+                                        <img src={getImageUrl(order.orderItems[0].image)} alt={order.orderItems[0].name} className="h-full w-full object-cover" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-[var(--color-text-main)] truncate max-w-[150px]" title={order.orderItems[0].name}>{order.orderItems[0].name}</p>

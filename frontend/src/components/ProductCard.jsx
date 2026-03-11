@@ -5,6 +5,8 @@ import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const ProductCard = ({ product }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -48,7 +50,7 @@ const ProductCard = ({ product }) => {
 
             <Link to={`/product/${product._id}`} className="block relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 <img
-                    src={product.image}
+                    src={getImageUrl(product.image)}
                     alt={product.name}
                     className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'}`}
                 />

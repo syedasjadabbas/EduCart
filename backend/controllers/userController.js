@@ -55,11 +55,11 @@ const registerUser = async (req, res) => {
         `;
 
         try {
-            await sendEmail({
-                email: user.email,
-                subject: 'EduCart — Verify Your Email Address',
-                html: emailHtml,
-            });
+        sendEmail({
+            email: user.email,
+            subject: 'EduCart — Verify Your Email Address',
+            html: emailHtml,
+        }).catch(err => console.error('Verification email failed:', err.message));
         } catch (emailErr) {
             console.error('Verification email failed to send:', emailErr.message);
         }
@@ -145,19 +145,17 @@ const forgotPassword = async (req, res) => {
             </div>
         `;
 
-        try {
-            await sendEmail({
+            sendEmail({
                 email: user.email,
                 subject: 'EduCart Account Password Reset',
                 html: emailHtml
+            }).catch(err => {
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpire = undefined;
+                user.save({ validateBeforeSave: false });
+                console.error('Password reset email failed:', err.message);
             });
-            res.status(200).json({ message: 'Email sent successfully' });
-        } catch (err) {
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpire = undefined;
-            await user.save({ validateBeforeSave: false });
-            return res.status(500).json({ message: 'Email could not be sent' });
-        }
+            res.status(200).json({ message: 'Email sequence initiated. Please check your inbox shortly.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -416,11 +414,11 @@ const reviewStudentVerification = async (req, res) => {
             `;
 
         try {
-            await sendEmail({
+            sendEmail({
                 email: user.email,
                 subject: status === 'approved' ? 'Student Verification Approved!' : 'Student Verification Rejected',
                 html: emailHtml
-            });
+            }).catch(err => console.error('Verification decision email failed:', err.message));
         } catch (err) { }
 
         res.json({ message: `User student verification marked as ${status}`, user });

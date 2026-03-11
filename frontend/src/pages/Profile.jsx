@@ -3,6 +3,8 @@ import { User, Lock, Camera, CheckCircle, AlertCircle, Package, Star, Trash2, Ed
 import AuthContext from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const Profile = () => {
     const { user, updateUser } = useContext(AuthContext);
@@ -47,7 +49,7 @@ const Profile = () => {
 
     if (!user) return <Navigate to="/login" replace />;
 
-    const currentPic = previewPic || (user.profilePicture ? `http://localhost:5000${user.profilePicture}` : null);
+    const currentPic = previewPic || user.profilePicture;
 
     const handleDeleteReview = async (reviewId) => {
         setDeletingId(reviewId);
@@ -172,7 +174,7 @@ const Profile = () => {
                         <div className="relative">
                             <div className="w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-200">
                                 {currentPic ? (
-                                    <img src={currentPic} alt="Profile" className="w-full h-full object-cover" />
+                                    <img src={currentPic ? getImageUrl(currentPic) : ''} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-blue-100">
                                         <User className="h-14 w-14 text-blue-400" />

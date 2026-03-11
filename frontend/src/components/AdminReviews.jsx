@@ -3,6 +3,8 @@ import { Star, MessageSquare, Package, AlertCircle, RefreshCw, Trash2, X } from 
 import { mockProducts } from '../data/mockProducts';
 import AuthContext from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -123,7 +125,7 @@ const AdminReviews = () => {
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-12 w-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                                                         {product.image ? (
-                                                            <img src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`} alt={product.name} className="h-full w-full object-cover" />
+                                                            <img src={getImageUrl(product.image)} alt={product.name} className="h-full w-full object-cover" />
                                                         ) : (
                                                             <Package className="h-6 w-6 text-slate-400" />
                                                         )}

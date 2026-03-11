@@ -5,6 +5,8 @@ import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import { Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const Checkout = () => {
     const { cartItems, emptyCart } = useContext(CartContext);
@@ -301,7 +303,7 @@ const Checkout = () => {
                                 {cartItems.map((item) => (
                                     <div key={item._id} className="flex items-center gap-4">
                                         <div className="relative w-16 h-16 rounded-md bg-slate-100 dark:bg-slate-800 shrink-0">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-md" />
+                                            <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover rounded-md" />
                                             <span className="absolute -top-2 -right-2 bg-slate-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">{item.qty}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">

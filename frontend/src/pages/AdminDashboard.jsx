@@ -11,6 +11,8 @@ import UserManagementPanel from '../components/UserManagementPanel';
 import CouponManagementPanel from '../components/CouponManagementPanel';
 import { Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const AdminDashboard = () => {
     const { user, authLoading } = useContext(AuthContext);
@@ -411,7 +413,7 @@ const AdminDashboard = () => {
                                                         {order.orderItems && order.orderItems.length > 0 ? (
                                                             <div className="flex items-center gap-3">
                                                                 <div className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                                                                    <img src={order.orderItems[0].image?.startsWith('http') ? order.orderItems[0].image : `http://localhost:5000${order.orderItems[0].image}`} alt={order.orderItems[0].name} className="h-full w-full object-cover" />
+                                                                    <img src={getImageUrl(order.orderItems[0].image)} alt={order.orderItems[0].name} className="h-full w-full object-cover" />
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-sm font-bold text-[var(--color-text-main)] truncate max-w-[150px]" title={order.orderItems[0].name}>{order.orderItems[0].name}</p>
@@ -561,7 +563,7 @@ const AdminDashboard = () => {
                                             <div className="border border-slate-100 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800">
                                                 {selectedOrder.orderItems?.map(item => (
                                                     <div key={item._id} className="flex items-center gap-4 p-3 relative">
-                                                        <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-md bg-slate-100" />
+                                                        <img src={getImageUrl(item.image)} alt={item.name} className="w-12 h-12 object-cover rounded-md bg-slate-100" />
                                                         <div className="flex-1 min-w-0 pr-4">
                                                             <p className="font-medium text-[var(--color-text-main)] truncate text-sm">{item.name}</p>
                                                             <p className="text-xs text-[var(--color-text-muted)]">Qty: {item.qty}</p>
@@ -672,9 +674,9 @@ const AdminDashboard = () => {
                                             {selectedOrder.transactionScreenshot ? (
                                                 <div className="space-y-4">
                                                     <p className="text-xs text-[var(--color-text-muted)]">Method: <strong className="text-[var(--color-text-main)]">{selectedOrder.paymentMethod}</strong> • Status: <strong className="uppercase">{selectedOrder.paymentStatus}</strong></p>
-                                                    <a href={`http://localhost:5000${selectedOrder.transactionScreenshot}`} target="_blank" rel="noopener noreferrer" className="block max-w-sm">
+                                                    <a href={selectedOrder.transactionScreenshot} target="_blank" rel="noopener noreferrer" className="block max-w-sm">
                                                         <img
-                                                            src={`http://localhost:5000${selectedOrder.transactionScreenshot}`}
+                                                            src={getImageUrl(selectedOrder.transactionScreenshot)}
                                                             alt="Transaction Screenshot"
                                                             className={`w-full h-auto max-h-80 rounded-xl border-4 ${selectedOrder.paymentStatus === 'approved' ? 'border-green-500' : selectedOrder.paymentStatus === 'rejected' ? 'border-red-500' : 'border-yellow-400'} object-contain cursor-zoom-in hover:opacity-90 transition-opacity shadow-sm`}
                                                         />

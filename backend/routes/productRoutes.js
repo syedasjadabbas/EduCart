@@ -47,7 +47,7 @@ router.post('/', upload.single('image'), async (req, res) => {
             stock: stock || 0,
             oldPrice: oldPrice || 0,
             discount: discount || 0,
-            image: req.file ? `http://localhost:5000/uploads/${req.file.filename}` : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
+            image: req.file ? `/uploads/${req.file.filename}` : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
         });
         const createdProduct = await product.save();
 
@@ -121,7 +121,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             product.oldPrice = oldPrice !== undefined ? oldPrice : product.oldPrice;
             product.discount = discount !== undefined ? discount : product.discount;
             if (req.file) {
-                product.image = `http://localhost:5000/uploads/${req.file.filename}`;
+                product.image = `/uploads/${req.file.filename}`;
             } else if (req.body.image) {
                 product.image = req.body.image;
             }

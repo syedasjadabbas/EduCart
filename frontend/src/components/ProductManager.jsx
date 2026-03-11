@@ -3,6 +3,8 @@ import { Plus, Edit, Trash2, X, AlertCircle, Image as ImageIcon } from 'lucide-r
 import toast from 'react-hot-toast';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
+import { getImageUrl } from '../utils/imageHelper';
+
 
 const ProductManager = () => {
     const { user } = useContext(AuthContext);
@@ -148,7 +150,7 @@ const ProductManager = () => {
                             {products.map((p) => (
                                 <tr key={p._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <img src={p.image.startsWith('http') ? p.image : `http://localhost:5000${p.image}`} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />
+                                        <img src={getImageUrl(p.image)} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />
                                     </td >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-main)] w-full max-w-xs truncate overflow-hidden">
                                         {p.name}
