@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { formatCurrency } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
 import { getImageUrl } from '../utils/imageHelper';
-
+import { Helmet } from 'react-helmet-async';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -63,13 +63,23 @@ const ProductDetails = () => {
         }
     };
 
+    const [notFound, setNotFound] = useState(false);
+
     useEffect(() => {
         setPageLoading(true);
+        setNotFound(false);
         Promise.all([
-            fetch(`/api/products/${id}`).then(res => res.json()),
+            fetch(`/api/products/${id}`).then(res => {
+                if (!res.ok) throw new Error('Product not found');
+                return res.json();
+            }),
             fetch(`/api/products`).then(res => res.json()),
         ])
             .then(([prodData, allProducts]) => {
+                if (!prodData || prodData.message) {
+                    setNotFound(true);
+                    return;
+                }
                 setProduct(prodData);
                 if (Array.isArray(allProducts)) {
                     let related = allProducts.filter(p => p._id !== prodData._id && p.category === prodData.category).slice(0, 4);
@@ -79,18 +89,22 @@ const ProductDetails = () => {
                     }
                     setRelatedProducts(related);
                 }
-            })
-            .catch(err => console.error('Failed to load product:', err))
-            .finally(() => setPageLoading(false));
 
-        setReviewsLoading(true);
-        fetch(`/api/reviews/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setReviews(data);
+                // Fetch reviews using the actual product ID
+                setReviewsLoading(true);
+                fetch(`/api/reviews/${prodData._id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) setReviews(data);
+                    })
+                    .catch(err => console.error('Failed to load reviews:', err))
+                    .finally(() => setReviewsLoading(false));
             })
-            .catch(err => console.error('Failed to load reviews:', err))
-            .finally(() => setReviewsLoading(false));
+            .catch(err => {
+                console.error('Failed to load product:', err);
+                setNotFound(true);
+            })
+            .finally(() => setPageLoading(false));
     }, [id]);
 
     const handleSubmitReview = async () => {
@@ -135,6 +149,18 @@ const ProductDetails = () => {
         ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
         : "0";
 
+    if (notFound) {
+        return (
+            <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[var(--color-background)]">
+                <h2 className="text-2xl font-bold text-[var(--color-text-main)] mb-4">Product Not Found</h2>
+                <p className="text-[var(--color-text-muted)] mb-6">The product you're looking for doesn't exist or has been removed.</p>
+                <Link to="/shop" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                    Browse All Products
+                </Link>
+            </div>
+        );
+    }
+
     if (pageLoading || !product) {
         return (
             <div className="min-h-[70vh] flex items-center justify-center bg-[var(--color-background)]">
@@ -150,6 +176,15 @@ const ProductDetails = () => {
 
     return (
         <div className="bg-[var(--color-background)] min-h-screen py-8 sm:py-12 animate-fade-in-up">
+            {product && (
+                <Helmet>
+                    <title>{product.seoTitle || product.name}</title>
+                    <meta name="description" content={product.seoDescription || product.description?.substring(0, 150)} />
+                    {(product.seoKeywords && product.seoKeywords.length > 0) && (
+                        <meta name="keywords" content={product.seoKeywords.join(', ')} />
+                    )}
+                </Helmet>
+            )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Back Link */}
                 <Link to="/shop" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 mb-8 sm:mb-10 transition-colors group">

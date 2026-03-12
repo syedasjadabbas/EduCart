@@ -27,9 +27,11 @@ import ScrollToTop from './components/ScrollToTop';
 import BackToTop from './components/BackToTop';
 import PageTransition from './components/PageTransition';
 import { Toaster } from 'react-hot-toast';
+import { HelmetProvider } from 'react-helmet-async';
 
 function App() {
   return (
+    <HelmetProvider>
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
@@ -77,6 +79,7 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>
+    </HelmetProvider>
   );
 }
 

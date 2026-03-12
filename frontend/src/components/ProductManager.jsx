@@ -13,7 +13,7 @@ const ProductManager = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [currentProduct, setCurrentProduct] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', description: '', price: '', category: '', stock: '', oldPrice: '', discount: ''
+        name: '', description: '', price: '', category: '', stock: '', oldPrice: '', discount: '', seoTitle: '', seoDescription: '', seoKeywords: '', slug: ''
     });
     const [imageFile, setImageFile] = useState(null);
 
@@ -64,7 +64,11 @@ const ProductManager = () => {
             category: product.category,
             stock: product.stock,
             oldPrice: product.oldPrice || '',
-            discount: product.discount || ''
+            discount: product.discount || '',
+            seoTitle: product.seoTitle || '',
+            seoDescription: product.seoDescription || '',
+            seoKeywords: product.seoKeywords ? product.seoKeywords.join(', ') : '',
+            slug: product.slug || ''
         });
         setImageFile(null);
         setIsEditing(true);
@@ -73,7 +77,7 @@ const ProductManager = () => {
     const handleAddClick = () => {
         setCurrentProduct(null);
         setFormData({
-            name: '', description: '', price: '', category: 'stationery', stock: '', oldPrice: '', discount: ''
+            name: '', description: '', price: '', category: 'stationery', stock: '', oldPrice: '', discount: '', seoTitle: '', seoDescription: '', seoKeywords: '', slug: ''
         });
         setImageFile(null);
         setIsEditing(true);
@@ -91,6 +95,10 @@ const ProductManager = () => {
         data.append('stock', formData.stock);
         if (formData.oldPrice) data.append('oldPrice', formData.oldPrice);
         if (formData.discount) data.append('discount', formData.discount);
+        if (formData.seoTitle) data.append('seoTitle', formData.seoTitle);
+        if (formData.seoDescription) data.append('seoDescription', formData.seoDescription);
+        if (formData.seoKeywords) data.append('seoKeywords', formData.seoKeywords);
+        if (formData.slug) data.append('slug', formData.slug);
         if (imageFile) data.append('image', imageFile);
 
         try {
@@ -234,6 +242,24 @@ const ProductManager = () => {
                                             <option value="desk">Desk Accessories</option>
                                             <option value="bottles">Water Bottles</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">SEO Title</label>
+                                        <input type="text" value={formData.seoTitle} onChange={e => setFormData({ ...formData, seoTitle: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-[var(--color-text-main)]" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">SEO Description</label>
+                                        <textarea value={formData.seoDescription} onChange={e => setFormData({ ...formData, seoDescription: e.target.value })} rows="2" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-[var(--color-text-main)] resize-none"></textarea>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">SEO Keywords (comma separated)</label>
+                                            <input type="text" value={formData.seoKeywords} onChange={e => setFormData({ ...formData, seoKeywords: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 text-[var(--color-text-main)]" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">Slug (SEO friendly URL)</label>
+                                            <input type="text" value={formData.slug} onChange={e => setFormData({ ...formData, slug: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 text-[var(--color-text-main)]" />
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-[var(--color-text-main)] mb-1">Product Image {currentProduct && '(Leave blank to keep current)'}</label>

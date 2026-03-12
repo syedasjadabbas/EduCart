@@ -357,7 +357,7 @@ const Profile = () => {
                                         <>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <Link to={`/product/${review.productId?._id || review.productId}`} className="text-sm font-bold text-blue-600 hover:underline">
+                                                    <Link to={`/product/${review.productId?.slug || review.productId?._id || review.productId}`} className="text-sm font-bold text-blue-600 hover:underline">
                                                         {review.productId?.name || `Product ID: ${review.productId}`}
                                                     </Link>
                                                     <div className="flex gap-1 mt-1">

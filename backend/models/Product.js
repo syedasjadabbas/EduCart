@@ -40,6 +40,18 @@ const productSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        seoTitle: {
+            type: String,
+        },
+        seoDescription: {
+            type: String,
+        },
+        seoKeywords: {
+            type: [String],
+        },
+        slug: {
+            type: String,
+        },
     },
     {
         timestamps: true,

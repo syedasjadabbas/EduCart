@@ -22,7 +22,16 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const isObjectId = req.params.id.match(/^[0-9a-fA-F]{24}$/);
+        let product;
+        if (isObjectId) {
+            product = await Product.findById(req.params.id);
+        }
+        if (!product) {
+            // Fallback to searching by slug
+            product = await Product.findOne({ slug: req.params.id });
+        }
+        
         if (product) {
             res.json(product);
         } else {
@@ -38,7 +47,10 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { name, description, price, category, stock, oldPrice, discount } = req.body;
+        const { name, description, price, category, stock, oldPrice, discount, seoTitle, seoDescription, seoKeywords, slug } = req.body;
+        
+        let generatedSlug = slug || (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : 'sample-product');
+
         const product = new Product({
             name: name || 'Sample Product',
             description: description || 'Sample Description',
@@ -47,6 +59,10 @@ router.post('/', upload.single('image'), async (req, res) => {
             stock: stock || 0,
             oldPrice: oldPrice || 0,
             discount: discount || 0,
+            seoTitle: seoTitle || '',
+            seoDescription: seoDescription || '',
+            seoKeywords: seoKeywords ? (Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim())) : [],
+            slug: generatedSlug,
             image: req.file ? `/uploads/${req.file.filename}` : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
         });
         const createdProduct = await product.save();
@@ -110,7 +126,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { name, description, price, category, stock, oldPrice, discount } = req.body;
+        const { name, description, price, category, stock, oldPrice, discount, seoTitle, seoDescription, seoKeywords, slug } = req.body;
         const product = await Product.findById(req.params.id);
         if (product) {
             product.name = name || product.name;
@@ -120,6 +136,13 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             product.stock = stock !== undefined ? stock : product.stock;
             product.oldPrice = oldPrice !== undefined ? oldPrice : product.oldPrice;
             product.discount = discount !== undefined ? discount : product.discount;
+            
+            if (seoTitle !== undefined) product.seoTitle = seoTitle;
+            if (seoDescription !== undefined) product.seoDescription = seoDescription;
+            if (slug !== undefined) product.slug = slug;
+            if (seoKeywords !== undefined) {
+                product.seoKeywords = Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim());
+            }
             if (req.file) {
                 product.image = `/uploads/${req.file.filename}`;
             } else if (req.body.image) {
