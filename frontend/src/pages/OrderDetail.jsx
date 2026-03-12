@@ -316,7 +316,7 @@ const OrderDetail = () => {
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {order.orderItems.map((item, idx) => (
                             <div key={item._id || idx} className="px-6 sm:px-10 py-5 flex items-center gap-5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                <Link to={`/product/${item.product}`} className="shrink-0">
+                                <Link to={`/product/${item.slug || item.product}`} className="shrink-0">
                                     <img
                                         src={getImageUrl(item.image)}
                                         alt={item.name}
@@ -324,7 +324,7 @@ const OrderDetail = () => {
                                     />
                                 </Link>
                                 <div className="flex-1 min-w-0">
-                                    <Link to={`/product/${item.product}`} className="font-bold text-[var(--color-text-main)] hover:text-blue-600 transition-colors text-base sm:text-lg line-clamp-2">
+                                    <Link to={`/product/${item.slug || item.product}`} className="font-bold text-[var(--color-text-main)] hover:text-blue-600 transition-colors text-base sm:text-lg line-clamp-2">
                                         {item.name}
                                     </Link>
                                     <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-[var(--color-text-muted)]">

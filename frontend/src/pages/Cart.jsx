@@ -202,11 +202,11 @@ const Cart = () => {
                         <div className="lg:col-span-2 space-y-4">
                             {cartItems.map((item) => (
                                 <div key={item._id} className="bg-[var(--color-surface)] border border-slate-100 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex gap-5 items-center group hover:shadow-md transition-shadow">
-                                    <Link to={`/product/${item._id}`} className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm">
+                                    <Link to={`/product/${item.slug || item._id}`} className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm">
                                         <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                     </Link>
                                     <div className="flex-1 min-w-0">
-                                        <Link to={`/product/${item._id}`} className="font-bold text-[var(--color-text-main)] hover:text-blue-600 transition-colors line-clamp-1">{item.name}</Link>
+                                        <Link to={`/product/${item.slug || item._id}`} className="font-bold text-[var(--color-text-main)] hover:text-blue-600 transition-colors line-clamp-1">{item.name}</Link>
                                         <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{item.category}</p>
                                     </div>
                                     <div className="hidden sm:flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-[var(--color-background)] p-0.5 shrink-0">

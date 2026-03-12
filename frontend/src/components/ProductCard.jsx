@@ -48,7 +48,7 @@ const ProductCard = ({ product }) => {
 
 
 
-            <Link to={`/product/${product._id}`} className="block relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+            <Link to={`/product/${product.slug || product._id}`} className="block relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 <img
                     src={getImageUrl(product.image)}
                     alt={product.name}
@@ -69,7 +69,7 @@ const ProductCard = ({ product }) => {
                     <span className="text-sm text-slate-400">({product.numReviews || 0})</span>
                 </div>
 
-                <Link to={`/product/${product._id}`}>
+                <Link to={`/product/${product.slug || product._id}`}>
                     <h3 className="font-semibold text-lg text-[var(--color-text-main)] mb-1 truncate group-hover:text-blue-600 transition-colors">
                         {product.name}
                     </h3>
