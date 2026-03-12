@@ -31,7 +31,7 @@ router.get('/:id', async (req, res) => {
             // Fallback to searching by slug
             product = await Product.findOne({ slug: req.params.id });
         }
-        
+
         if (product) {
             res.json(product);
         } else {
@@ -48,7 +48,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', upload.single('image'), async (req, res) => {
     try {
         const { name, description, price, category, stock, oldPrice, discount, seoTitle, seoDescription, seoKeywords, slug } = req.body;
-        
+
         let generatedSlug = slug || (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : 'sample-product');
 
         const product = new Product({
@@ -136,7 +136,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             product.stock = stock !== undefined ? stock : product.stock;
             product.oldPrice = oldPrice !== undefined ? oldPrice : product.oldPrice;
             product.discount = discount !== undefined ? discount : product.discount;
-            
+
             if (seoTitle !== undefined) product.seoTitle = seoTitle;
             if (seoDescription !== undefined) product.seoDescription = seoDescription;
             if (slug !== undefined) product.slug = slug;
