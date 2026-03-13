@@ -39,7 +39,7 @@ const addOrderItems = async (req, res) => {
         }
 
         // Screenshot URL from multer
-        const screenshotUrl = req.file ? `/uploads/${req.file.filename}` : null;
+        const screenshotUrl = req.file ? (req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`) : null;
 
         const order = new Order({
             user: userId,

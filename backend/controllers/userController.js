@@ -251,7 +251,7 @@ const updateProfile = async (req, res) => {
 
         if (req.body.name) user.name = req.body.name;
         if (req.body.password) user.password = req.body.password;
-        if (req.file) user.profilePicture = `/uploads/${req.file.filename}`;
+        if (req.file) user.profilePicture = req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`;
 
         await user.save();
 
@@ -289,7 +289,7 @@ const uploadStudentId = async (req, res) => {
             return res.status(400).json({ message: 'No image uploaded' });
         }
 
-        user.studentIdCard = `/uploads/${req.file.filename}`;
+        user.studentIdCard = req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`;
         user.studentVerificationStatus = 'pending';
         await user.save();
 
