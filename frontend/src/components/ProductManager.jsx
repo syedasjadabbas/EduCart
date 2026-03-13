@@ -195,11 +195,16 @@ const ProductManager = () => {
 
             {
                 isEditing && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in overflow-y-auto">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
                         <div className="bg-[var(--color-surface)] w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 my-8 flex flex-col">
                             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
                                 <h3 className="text-xl font-bold text-[var(--color-text-main)]">{currentProduct ? 'Edit Product' : 'Add New Product'}</h3>
-                                <button onClick={() => setIsEditing(false)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                                <button 
+                                    onClick={() => setIsEditing(false)} 
+                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center gap-1.5"
+                                    title="Close Modal"
+                                >
+                                    <span className="text-xs font-bold uppercase lg:block hidden">Close</span>
                                     <X className="h-5 w-5" />
                                 </button>
                             </div>
@@ -267,7 +272,9 @@ const ProductManager = () => {
                                         <input type="file" onChange={e => setImageFile(e.target.files[0])} accept="image/*" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
                                     </div>
                                     <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                                        <button type="button" onClick={() => setIsEditing(false)} className="px-5 py-2.5 font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+                                        <button type="button" onClick={() => setIsEditing(false)} className="px-5 py-2.5 font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm">
+                                            Cancel & Close
+                                        </button>
                                         <button type="submit" disabled={loading} className="px-5 py-2.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-colors disabled:opacity-50">
                                             {loading ? 'Saving...' : 'Save Product'}
                                         </button>

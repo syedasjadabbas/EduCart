@@ -98,13 +98,19 @@ const StudentVerificationDashboard = () => {
                         <p className="font-medium text-[var(--color-text-main)]">Select a student record to review</p>
                     </div>
                 ) : (
-                    <div className="bg-[var(--color-surface)] rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden sticky top-8 animate-fade-in-up">
+                    <div className="bg-[var(--color-surface)] rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden sticky top-24 animate-fade-in-up">
                         <div className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
                             <div>
                                 <h2 className="text-lg font-bold text-[var(--color-text-main)]">Review Student ID</h2>
                                 <p className="text-sm text-slate-500">{selectedStudent.name} ({selectedStudent.email})</p>
                             </div>
-                            <button className="lg:hidden p-2 text-slate-500 hover:text-slate-800" onClick={() => setSelectedStudent(null)}>Close</button>
+                            <button 
+                                className="lg:hidden p-2 text-slate-500 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all font-bold flex items-center gap-1" 
+                                onClick={() => setSelectedStudent(null)}
+                            >
+                                <X className="w-4 h-4" />
+                                <span>Close</span>
+                            </button>
                         </div>
 
                         <div className="p-6">
