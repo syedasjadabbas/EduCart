@@ -505,7 +505,7 @@ const AdminDashboard = () => {
 
                         {/* Modal Overlay */}
                         {selectedOrder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                                 <div className="bg-[var(--color-surface)] w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col">
 
                                     {/* Modal Header */}
@@ -513,8 +513,10 @@ const AdminDashboard = () => {
                                         <h3 className="text-xl font-bold text-[var(--color-text-main)]">Order Details</h3>
                                         <button
                                             onClick={() => setSelectedOrder(null)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center gap-1.5"
+                                            title="Close Modal"
                                         >
+                                            <span className="text-xs font-bold uppercase lg:block hidden">Close</span>
                                             <X className="h-5 w-5" />
                                         </button>
                                     </div>
@@ -708,111 +710,112 @@ const AdminDashboard = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                        {/* Refund Section */}
+                                        {selectedOrder.refundStatus && selectedOrder.refundStatus !== 'none' && (
+                                            <div className={`p-4 rounded-xl border ${selectedOrder.refundStatus === 'requested' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/30' : selectedOrder.refundStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30'}`}>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <RotateCcw className={`w-4 h-4 ${selectedOrder.refundStatus === 'requested' ? 'text-amber-600' : selectedOrder.refundStatus === 'approved' ? 'text-green-600' : 'text-red-600'}`} />
+                                                    <span className={`text-sm font-bold ${selectedOrder.refundStatus === 'requested' ? 'text-amber-800 dark:text-amber-300' : selectedOrder.refundStatus === 'approved' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
+                                                        Refund {selectedOrder.refundStatus.charAt(0).toUpperCase() + selectedOrder.refundStatus.slice(1)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-[var(--color-text-muted)] mb-1"><strong>Reason:</strong> {selectedOrder.refundReason}</p>
+                                                {selectedOrder.refundAdminNote && <p className="text-sm text-[var(--color-text-muted)]"><strong>Admin Note:</strong> {selectedOrder.refundAdminNote}</p>}
+                                                {selectedOrder.refundStatus === 'requested' && (
+                                                    <div className="mt-3 space-y-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Admin note (optional)..."
+                                                            value={refundAdminNote}
+                                                            onChange={(e) => setRefundAdminNote(e.target.value)}
+                                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[var(--color-text-main)]"
+                                                        />
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const note = refundAdminNote;
+                                                                    try {
+                                                                        const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
+                                                                            method: 'PUT',
+                                                                            headers: { 
+                                                                                'Content-Type': 'application/json',
+                                                                                'Authorization': `Bearer ${user.token}`
+                                                                            },
+                                                                            body: JSON.stringify({ status: 'approved', adminNote: note })
+                                                                        });
+                                                                        if (res.ok) { toast.success('Refund approved'); const data = await res.json(); setSelectedOrder(data); fetchOrders(); }
+                                                                        else { toast.error('Failed to process refund'); }
+                                                                    } catch(e) { toast.error('Network error'); }
+                                                                }}
+                                                                className="px-4 py-2 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                            >
+                                                                ✅ Approve Refund
+                                                            </button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const note = refundAdminNote;
+                                                                    try {
+                                                                        const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
+                                                                            method: 'PUT',
+                                                                            headers: { 
+                                                                                'Content-Type': 'application/json',
+                                                                                'Authorization': `Bearer ${user.token}`
+                                                                            },
+                                                                            body: JSON.stringify({ status: 'rejected', adminNote: note })
+                                                                        });
+                                                                        if (res.ok) { toast.success('Refund rejected'); const data = await res.json(); setSelectedOrder(data); fetchOrders(); }
+                                                                        else { toast.error('Failed to process refund'); }
+                                                                    } catch(e) { toast.error('Network error'); }
+                                                                }}
+                                                                className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                                            >
+                                                                ❌ Reject Refund
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Not Received History */}
+                                        {selectedOrder.notReceivedReports && selectedOrder.notReceivedReports.length > 0 && (
+                                            <div className="p-4 rounded-xl border bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <AlertCircle className="w-4 h-4 text-red-600" />
+                                                    <span className="text-sm font-bold text-red-800 dark:text-red-400">
+                                                        Delivery Issues Reported ({selectedOrder.notReceivedCount})
+                                                    </span>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {selectedOrder.notReceivedReports.map((report, idx) => (
+                                                        <div key={idx} className="text-sm bg-white dark:bg-slate-900 p-3 rounded-lg border border-red-100 dark:border-red-900/20 shadow-sm">
+                                                            <div className="flex justify-between items-start mb-1">
+                                                                <p className="font-semibold text-slate-800 dark:text-slate-200">Reported on {new Date(report.reportedAt).toLocaleString()}</p>
+                                                                {report.adminAction && (
+                                                                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1">
+                                                                        <CheckCircle className="w-2.5 h-2.5" /> {report.adminAction}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-slate-600 dark:text-slate-400 italic">"{report.reason}"</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Refund Section */}
-                                    {selectedOrder.refundStatus && selectedOrder.refundStatus !== 'none' && (
-                                        <div className={`mx-6 sm:mx-8 mb-4 p-4 rounded-xl border ${selectedOrder.refundStatus === 'requested' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/30' : selectedOrder.refundStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30'}`}>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <RotateCcw className={`w-4 h-4 ${selectedOrder.refundStatus === 'requested' ? 'text-amber-600' : selectedOrder.refundStatus === 'approved' ? 'text-green-600' : 'text-red-600'}`} />
-                                                <span className={`text-sm font-bold ${selectedOrder.refundStatus === 'requested' ? 'text-amber-800 dark:text-amber-300' : selectedOrder.refundStatus === 'approved' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
-                                                    Refund {selectedOrder.refundStatus.charAt(0).toUpperCase() + selectedOrder.refundStatus.slice(1)}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-[var(--color-text-muted)] mb-1"><strong>Reason:</strong> {selectedOrder.refundReason}</p>
-                                            {selectedOrder.refundAdminNote && <p className="text-sm text-[var(--color-text-muted)]"><strong>Admin Note:</strong> {selectedOrder.refundAdminNote}</p>}
-                                            {selectedOrder.refundStatus === 'requested' && (
-                                                <div className="mt-3 space-y-2">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Admin note (optional)..."
-                                                        value={refundAdminNote}
-                                                        onChange={(e) => setRefundAdminNote(e.target.value)}
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[var(--color-text-main)]"
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={async () => {
-                                                                const note = refundAdminNote;
-                                                                try {
-                                                                    const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
-                                                                        method: 'PUT',
-                                                                        headers: { 
-                                                                            'Content-Type': 'application/json',
-                                                                            'Authorization': `Bearer ${user.token}`
-                                                                        },
-                                                                        body: JSON.stringify({ status: 'approved', adminNote: note })
-                                                                    });
-                                                                    if (res.ok) { toast.success('Refund approved'); const data = await res.json(); setSelectedOrder(data); fetchOrders(); }
-                                                                    else { toast.error('Failed to process refund'); }
-                                                                } catch(e) { toast.error('Network error'); }
-                                                            }}
-                                                            className="px-4 py-2 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                                                        >
-                                                            ✅ Approve Refund
-                                                        </button>
-                                                        <button
-                                                            onClick={async () => {
-                                                                const note = refundAdminNote;
-                                                                try {
-                                                                    const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
-                                                                        method: 'PUT',
-                                                                        headers: { 
-                                                                            'Content-Type': 'application/json',
-                                                                            'Authorization': `Bearer ${user.token}`
-                                                                        },
-                                                                        body: JSON.stringify({ status: 'rejected', adminNote: note })
-                                                                    });
-                                                                    if (res.ok) { toast.success('Refund rejected'); const data = await res.json(); setSelectedOrder(data); fetchOrders(); }
-                                                                    else { toast.error('Failed to process refund'); }
-                                                                } catch(e) { toast.error('Network error'); }
-                                                            }}
-                                                            className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                                                        >
-                                                            ❌ Reject Refund
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Not Received History */}
-                                    {selectedOrder.notReceivedReports && selectedOrder.notReceivedReports.length > 0 && (
-                                        <div className="mx-6 sm:mx-8 mb-4 p-4 rounded-xl border bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <AlertCircle className="w-4 h-4 text-red-600" />
-                                                <span className="text-sm font-bold text-red-800 dark:text-red-400">
-                                                    Delivery Issues Reported ({selectedOrder.notReceivedCount})
-                                                </span>
-                                            </div>
-                                            <div className="space-y-3">
-                                                {selectedOrder.notReceivedReports.map((report, idx) => (
-                                                    <div key={idx} className="text-sm bg-white dark:bg-slate-900 p-3 rounded-lg border border-red-100 dark:border-red-900/20 shadow-sm">
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <p className="font-semibold text-slate-800 dark:text-slate-200">Reported on {new Date(report.reportedAt).toLocaleString()}</p>
-                                                            {report.adminAction && (
-                                                                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1">
-                                                                    <CheckCircle className="w-2.5 h-2.5" /> {report.adminAction}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-slate-600 dark:text-slate-400 italic">"{report.reason}"</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Modal Actions */}
+                                    {/* Modal Actions Footer */}
                                     <div className="p-6 bg-slate-50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-end gap-3 rounded-b-2xl">
-                                        {selectedOrder.isReceivedByUser ? (
-                                            <div className="flex items-center gap-2 text-green-600 dark:text-green-500 font-bold px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                                <CheckCircle className="h-5 w-5" /> Customer Confirmed Delivery
-                                            </div>
-                                        ) : (
+                                        <button
+                                            onClick={() => setSelectedOrder(null)}
+                                            className="px-6 py-2.5 bg-white dark:bg-slate-900 text-[var(--color-text-main)] font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm"
+                                        >
+                                            Close Record
+                                        </button>
+                                        
+                                        {!selectedOrder.isReceivedByUser && (
                                             <>
-                                                <button onClick={() => setSelectedOrder(null)} className="px-5 py-2.5 font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Close</button>
                                                 {!selectedOrder.isShipped && selectedOrder.paymentStatus === 'approved' && (
                                                     <button
                                                         onClick={() => {
@@ -823,24 +826,29 @@ const AdminDashboard = () => {
                                                             }
                                                         }}
                                                         disabled={updating}
-                                                        className={`flex items-center gap-2 ${selectedOrder.notReceivedCount > 0 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition-colors disabled:opacity-50`}
+                                                        className={`flex items-center justify-center gap-2 ${selectedOrder.notReceivedCount > 0 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50`}
                                                     >
                                                         {selectedOrder.notReceivedCount > 0 ? <RotateCcw className="h-5 w-5" /> : <Package className="h-5 w-5" />}
                                                         {updating ? 'Updating...' : selectedOrder.notReceivedCount > 0 ? 'Ship Again' : 'Mark as Shipped'}
                                                     </button>
                                                 )}
-                                                {selectedOrder.isShipped && !selectedOrder.isReceivedByUser && (
-                                                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                                                {selectedOrder.isShipped && (
+                                                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
                                                         <Truck className="h-5 w-5" />
                                                         Shipped on {new Date(selectedOrder.shippedAt).toLocaleDateString()}
                                                     </div>
                                                 )}
                                                 {!selectedOrder.isShipped && selectedOrder.paymentStatus !== 'approved' && (
-                                                    <div className="px-5 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-800/30 flex items-center gap-2">
+                                                    <div className="px-5 py-2.5 text-sm font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-800/30 flex items-center gap-2">
                                                         <AlertCircle className="w-4 h-4" /> Approve payment first
                                                     </div>
                                                 )}
                                             </>
+                                        )}
+                                        {selectedOrder.isReceivedByUser && (
+                                            <div className="flex items-center gap-2 text-green-600 dark:text-green-500 font-bold px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/50">
+                                                <CheckCircle className="h-5 w-5" /> Customer Confirmed Delivery
+                                            </div>
                                         )}
                                     </div>
                                 </div>
