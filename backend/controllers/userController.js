@@ -38,20 +38,22 @@ const registerUser = async (req, res) => {
         const verifyUrl = `${frontendUrl}/verify-email/${verificationToken}`;
 
         const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <h1 style="color: #2563eb; margin: 0;">EduCart</h1>
-                    <p style="color: #64748b; margin-top: 4px;">Student Essentials Store</p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to EduCart! 🎓</h1>
                 </div>
-                <h2 style="color: #1e293b;">Verify Your Email Address</h2>
-                <p style="color: #475569;">Hi ${name},</p>
-                <p style="color: #475569;">Thank you for registering! Please click the button below to verify your email address and activate your account.</p>
-                <div style="text-align: center; margin: 32px 0;">
-                    <a href="${verifyUrl}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Verify Email Address</a>
+                <div style="padding: 32px; background-color: white;">
+                    <h2 style="color: #1e293b; margin-top: 0;">Verify Your Email Address</h2>
+                    <p style="color: #475569; font-size: 16px;">Hi <strong>${name}</strong>,</p>
+                    <p style="color: #475569; font-size: 16px; line-height: 1.6;">Thank you for registering! Please click the button below to verify your email address and activate your student account.</p>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="${verifyUrl}" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);">Verify Email Address</a>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px; text-align: center;">This link will expire in <strong>24 hours</strong>. If you did not create an account, you can safely ignore this email.</p>
+                    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for choosing EduCart Store!</p>
+                    </div>
                 </div>
-                <p style="color: #64748b; font-size: 14px;">This link will expire in <strong>24 hours</strong>. If you did not create an account, you can safely ignore this email.</p>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-                <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>
             </div>
         `;
 
@@ -135,16 +137,21 @@ const forgotPassword = async (req, res) => {
         const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
         const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-                <h2 style="color: #2563eb; text-align: center;">EduCart Password Reset</h2>
-                <p>Hello ${user.name},</p>
-                <p>We received a request to reset the password for your EduCart student account.</p>
-                <p>Please click the button below to set a new password. This link is only valid for 10 minutes.</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Password Reset Request 🔐</h1>
                 </div>
-                <p>If you didn't request this, please ignore this email.</p>
-                <p>Best,<br>The EduCart Team</p>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="color: #475569; font-size: 16px;">Hello <strong>${user.name}</strong>,</p>
+                    <p style="color: #475569; font-size: 16px; line-height: 1.6;">We received a request to reset the password for your EduCart student account. Click the button below to set a new password.</p>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="${resetUrl}" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);">Reset Password</a>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px; text-align: center;">This link is only valid for <strong>10 minutes</strong>. If you didn't request this, please ignore this email.</p>
+                    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for choosing EduCart Store!</p>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -362,57 +369,48 @@ const reviewStudentVerification = async (req, res) => {
 
         const emailHtml = status === 'approved'
             ? `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <h1 style="color: #2563eb; margin: 0;">EduCart</h1>
-                    <p style="color: #64748b; margin-top: 4px;">Student Essentials Store</p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #d1fae5; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Verification Approved! ✅</h1>
                 </div>
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="display: inline-block; background-color: #d1fae5; padding: 16px; border-radius: 50%;">
-                        <span style="font-size: 36px;">✅</span>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="color: #475569; font-size: 16px;">Hi <strong>${user.name}</strong>,</p>
+                    <p style="color: #475569; font-size: 16px; line-height: 1.6;">Great news! Your student ID has been verified. You are now an official <strong>Verified Student</strong> on EduCart.</p>
+                    
+                    <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; padding: 24px; border-radius: 12px; text-align: center; margin: 24px 0; border: 1px solid #a7f3d0;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 20px;">🎉 15% Discount Activated!</h3>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your student discount is now automatically applied to every purchase.</p>
+                    </div>
+
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">Start Shopping Now</a>
+                    </div>
+                    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for joining our student community!</p>
                     </div>
                 </div>
-                <h2 style="color: #059669; text-align: center;">Student Verification Approved!</h2>
-                <p style="color: #475569;">Hi ${user.name},</p>
-                <p style="color: #475569;">Great news! Your student ID has been verified by our team. You are now an official <strong>Verified Student</strong> on EduCart.</p>
-                <div style="background: linear-gradient(135deg, #059669, #0d9488); color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 24px 0;">
-                    <h3 style="margin: 0 0 8px 0; font-size: 20px;">🎉 15% Discount Activated!</h3>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your flat 15% student discount is now automatically applied on every purchase.</p>
-                </div>
-                <div style="text-align: center; margin: 32px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Start Shopping Now</a>
-                </div>
-                <p style="color: #64748b; font-size: 14px;">Thank you for being part of the EduCart student community. Enjoy your discounted experience!</p>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-                <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>
             </div>
             `
             : `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <h1 style="color: #2563eb; margin: 0;">EduCart</h1>
-                    <p style="color: #64748b; margin-top: 4px;">Student Essentials Store</p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fee2e2; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Verification Update ❌</h1>
                 </div>
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="display: inline-block; background-color: #fee2e2; padding: 16px; border-radius: 50%;">
-                        <span style="font-size: 36px;">❌</span>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="color: #475569; font-size: 16px;">Hi <strong>${user.name}</strong>,</p>
+                    <p style="color: #475569; font-size: 16px; line-height: 1.6;">Unfortunately, we were unable to verify your student ID. Common reasons include blurry images or expired cards.</p>
+                    
+                    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0; border-left: 4px solid #ef4444;">
+                        <p style="margin: 0; font-size: 15px; color: #991b1b;">Please ensure your photo is clear and clearly shows your name and expiry date.</p>
+                    </div>
+
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">Re-upload Student ID</a>
+                    </div>
+                    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 14px; color: #94a3b8; margin: 0;">Need help? Reply to this email.</p>
                     </div>
                 </div>
-                <h2 style="color: #dc2626; text-align: center;">Student Verification Rejected</h2>
-                <p style="color: #475569;">Hi ${user.name},</p>
-                <p style="color: #475569;">Unfortunately, we were unable to verify your student ID. This could be due to one of the following reasons:</p>
-                <ul style="color: #475569; padding-left: 20px;">
-                    <li>The uploaded image was unclear or blurry</li>
-                    <li>The student ID card appeared to be invalid or expired</li>
-                    <li>Required information on the card was not visible</li>
-                </ul>
-                <p style="color: #475569;">Don't worry — you can try again! Please upload a clearer photo of your valid student ID card.</p>
-                <div style="text-align: center; margin: 32px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Re-upload Student ID</a>
-                </div>
-                <p style="color: #64748b; font-size: 14px;">If you believe this was a mistake, please contact our support team for assistance.</p>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-                <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>
             </div>
             `;
 
