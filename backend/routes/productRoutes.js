@@ -63,7 +63,7 @@ router.post('/', upload.single('image'), async (req, res) => {
             seoDescription: seoDescription || '',
             seoKeywords: seoKeywords ? (Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim())) : [],
             slug: generatedSlug,
-            image: req.file ? `/uploads/${req.file.filename}` : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
+            image: req.file ? (req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`) : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
         });
         const createdProduct = await product.save();
 
@@ -144,7 +144,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
                 product.seoKeywords = Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim());
             }
             if (req.file) {
-                product.image = `/uploads/${req.file.filename}`;
+                product.image = req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`;
             } else if (req.body.image) {
                 product.image = req.body.image;
             }
