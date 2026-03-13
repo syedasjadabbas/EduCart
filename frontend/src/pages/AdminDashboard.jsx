@@ -12,6 +12,7 @@ import CouponManagementPanel from '../components/CouponManagementPanel';
 import { Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const AdminDashboard = () => {
@@ -48,7 +49,7 @@ const AdminDashboard = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch('/api/orders', {
+            const res = await fetchApi('/api/orders', {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });
             if (res.ok) {
@@ -65,7 +66,7 @@ const AdminDashboard = () => {
     const handleExportExcel = async () => {
         const loadingToast = toast.loading('Exporting to Excel...');
         try {
-            const res = await fetch('/api/orders', {
+            const res = await fetchApi('/api/orders', {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });
             if (!res.ok) throw new Error('Failed to fetch data');
@@ -141,7 +142,7 @@ const AdminDashboard = () => {
     const handleMarkShipped = async (orderId) => {
         setUpdating(true);
         try {
-            const res = await fetch(`/api/orders/${orderId}/ship`, {
+            const res = await fetchApi(`/api/orders/${orderId}/ship`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
     const handleReship = async (orderId) => {
         setUpdating(true);
         try {
-            const res = await fetch(`/api/orders/${orderId}/reship`, {
+            const res = await fetchApi(`/api/orders/${orderId}/reship`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${user.token}` }
             });
@@ -591,7 +592,7 @@ const AdminDashboard = () => {
                                                                 e.preventDefault();
                                                                 setIsActionLoading(true);
                                                                 try {
-                                                                    const res = await fetch(`/api/orders/${selectedOrder._id}/approve-payment`, {
+                                                                    const res = await fetchApi(`/api/orders/${selectedOrder._id}/approve-payment`, {
                                                                         method: 'PUT',
                                                                         headers: { 'Authorization': `Bearer ${user.token}` }
                                                                     });
@@ -632,7 +633,7 @@ const AdminDashboard = () => {
                                                                         e.preventDefault();
                                                                         setIsActionLoading(true);
                                                                         try {
-                                                                            const res = await fetch(`/api/orders/${selectedOrder._id}/reject-payment`, {
+                                                                            const res = await fetchApi(`/api/orders/${selectedOrder._id}/reject-payment`, {
                                                                                 method: 'PUT',
                                                                                 headers: {
                                                                                     Authorization: `Bearer ${user.token}`,
@@ -734,7 +735,7 @@ const AdminDashboard = () => {
                                                             onClick={async () => {
                                                                 const note = refundAdminNote;
                                                                 try {
-                                                                    const res = await fetch(`/api/orders/${selectedOrder._id}/process-refund`, {
+                                                                    const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
                                                                         method: 'PUT',
                                                                         headers: { 
                                                                             'Content-Type': 'application/json',
@@ -754,7 +755,7 @@ const AdminDashboard = () => {
                                                             onClick={async () => {
                                                                 const note = refundAdminNote;
                                                                 try {
-                                                                    const res = await fetch(`/api/orders/${selectedOrder._id}/process-refund`, {
+                                                                    const res = await fetchApi(`/api/orders/${selectedOrder._id}/process-refund`, {
                                                                         method: 'PUT',
                                                                         headers: { 
                                                                             'Content-Type': 'application/json',

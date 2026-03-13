@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import { fetchApi } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -16,12 +17,28 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, rememberMe = false) => {
         try {
-            const res = await fetch('/api/users/login', {
+            const res = await fetchApi('/api/users/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email: email.trim(), password })
             });
-            const data = await res.json();
+
+            // Debugging
+            const text = await res.text();
+            console.log('Login Response Status:', res.status);
+            console.log('Login Response Body:', text);
+
+            if (!text) {
+                return { success: false, message: 'Server returned an empty response.' };
+            }
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                return { success: false, message: 'Server returned invalid JSON.' };
+            }
+
             if (res.ok) {
                 setUser(data);
                 if (rememberMe) {
@@ -31,29 +48,43 @@ export const AuthProvider = ({ children }) => {
                 }
                 return { success: true };
             } else {
-                return { success: false, message: data.message };
+                return { success: false, message: data.message || 'Login failed' };
             }
         } catch (error) {
+            console.error('Login Error:', error);
             return { success: false, message: error.message };
         }
     };
 
     const register = async (name, email, password, isStudentVerified) => {
         try {
-            const res = await fetch('/api/users', {
+            const res = await fetchApi('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password, isStudentVerified })
             });
-            const data = await res.json();
+
+            const text = await res.text();
+            if (!text) {
+                return { success: false, message: 'Server returned an empty response.' };
+            }
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                return { success: false, message: 'Server returned invalid JSON.' };
+            }
+
             if (res.ok) {
                 setUser(data);
                 localStorage.setItem('userInfo', JSON.stringify(data));
                 return { success: true };
             } else {
-                return { success: false, message: data.message };
+                return { success: false, message: data.message || 'Registration failed' };
             }
         } catch (error) {
+            console.error('Registration Error:', error);
             return { success: false, message: error.message };
         }
     };

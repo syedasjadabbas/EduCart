@@ -3,6 +3,7 @@ import AuthContext from '../context/AuthContext';
 import { Check, X, Clock, BadgeCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const StudentVerificationDashboard = () => {
@@ -13,7 +14,7 @@ const StudentVerificationDashboard = () => {
 
     const fetchVerifications = async () => {
         try {
-            const res = await fetch('/api/users/pending-verifications', {
+            const res = await fetchApi('/api/users/pending-verifications', {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             if (res.ok) {
@@ -33,7 +34,7 @@ const StudentVerificationDashboard = () => {
 
     const handleAction = async (studentId, status) => {
         try {
-            const res = await fetch(`/api/users/review-verification/${studentId}`, {
+            const res = await fetchApi(`/api/users/review-verification/${studentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

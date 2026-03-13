@@ -3,6 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { useState, useMemo, useEffect } from 'react';
 import { Filter, Search, Loader, SearchX } from 'lucide-react';
 import { ProductSkeleton, EmptyState } from '../components/Skeletons';
+import { fetchApi } from '../utils/api';
 
 const Shop = () => {
     const location = useLocation();
@@ -21,7 +22,7 @@ const Shop = () => {
                 // Artificial delay to show off beautiful skeletons for 600ms
                 await new Promise(r => setTimeout(r, 600));
 
-                const res = await fetch('/api/products');
+                const res = await fetchApi('/api/products');
                 const data = await res.json();
                 setProducts(data);
             } catch (err) {

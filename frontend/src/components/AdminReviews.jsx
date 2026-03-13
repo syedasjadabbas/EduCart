@@ -4,6 +4,7 @@ import { mockProducts } from '../data/mockProducts';
 import AuthContext from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const AdminReviews = () => {
@@ -18,10 +19,10 @@ const AdminReviews = () => {
         setLoading(true);
         try {
             const [reviewsRes, productsRes] = await Promise.all([
-                fetch('/api/reviews', {
+                fetchApi('/api/reviews', {
                     headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {}
                 }),
-                fetch('/api/products')
+                fetchApi('/api/products')
             ]);
 
             if (reviewsRes.ok && productsRes.ok) {
@@ -45,7 +46,7 @@ const AdminReviews = () => {
     const handleDeleteReview = async (reviewId) => {
         setDeletingId(reviewId);
         try {
-            const res = await fetch(`/api/reviews/${reviewId}`, {
+            const res = await fetchApi(`/api/reviews/${reviewId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });

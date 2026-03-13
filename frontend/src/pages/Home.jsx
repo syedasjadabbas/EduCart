@@ -3,6 +3,7 @@ import { BookOpen, Laptop, Briefcase, PenTool, Coffee, Monitor, ArrowRight, Shie
 import ProductCard from '../components/ProductCard';
 import { ProductSkeleton } from '../components/Skeletons';
 import { formatCurrency } from '../utils/currency';
+import { fetchApi } from '../utils/api';
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import AuthContext from '../context/AuthContext';
 
@@ -189,7 +190,7 @@ const Home = () => {
     });
 
     useEffect(() => {
-        fetch('/api/products')
+        fetchApi('/api/products')
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) setProducts(data);

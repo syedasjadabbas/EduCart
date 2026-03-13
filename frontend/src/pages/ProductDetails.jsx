@@ -8,6 +8,7 @@ import { formatCurrency } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
 import { getImageUrl } from '../utils/imageHelper';
 import { Helmet } from 'react-helmet-async';
+import { fetchApi } from '../utils/api';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -69,11 +70,11 @@ const ProductDetails = () => {
         setPageLoading(true);
         setNotFound(false);
         Promise.all([
-            fetch(`/api/products/${id}`).then(res => {
+            fetchApi(`/api/products/${id}`).then(res => {
                 if (!res.ok) throw new Error('Product not found');
                 return res.json();
             }),
-            fetch(`/api/products`).then(res => res.json()),
+            fetchApi(`/api/products`).then(res => res.json()),
         ])
             .then(([prodData, allProducts]) => {
                 if (!prodData || prodData.message) {
@@ -92,7 +93,7 @@ const ProductDetails = () => {
 
                 // Fetch reviews using the actual product ID
                 setReviewsLoading(true);
-                fetch(`/api/reviews/${prodData._id}`)
+                fetchApi(`/api/reviews/${prodData._id}`)
                     .then(res => res.json())
                     .then(data => {
                         if (Array.isArray(data)) setReviews(data);
@@ -118,7 +119,7 @@ const ProductDetails = () => {
 
         setSubmitting(true);
         try {
-            const res = await fetch(`/api/reviews/${product._id}`, {
+            const res = await fetchApi(`/api/reviews/${product._id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

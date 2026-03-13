@@ -3,6 +3,7 @@ import { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import AuthContext from '../context/AuthContext';
+import { fetchApi } from '../utils/api';
 
 const VerifyStudent = () => {
     const { user, updateUser } = useContext(AuthContext);
@@ -31,7 +32,7 @@ const VerifyStudent = () => {
         formData.append('studentIdCard', file);
 
         try {
-            const res = await fetch('/api/users/student-id', {
+            const res = await fetchApi('/api/users/student-id', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${user.token}`,

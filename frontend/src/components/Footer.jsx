@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Package, Facebook, Twitter, Instagram, Github } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { fetchApi } from '../utils/api';
 
 const Footer = () => {
     const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ const Footer = () => {
         }
         setLoading(true);
         try {
-            const res = await fetch('/api/newsletter', {
+            const res = await fetchApi('/api/newsletter', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })

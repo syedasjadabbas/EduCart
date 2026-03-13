@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const ProductManager = () => {
@@ -19,7 +20,7 @@ const ProductManager = () => {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch('/api/products');
+            const res = await fetchApi('/api/products');
             if (res.ok) {
                 const data = await res.json();
                 setProducts(data);
@@ -38,7 +39,7 @@ const ProductManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this product?")) return;
         try {
-            const res = await fetch(`/api/products/${id}`, {
+            const res = await fetchApi(`/api/products/${id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${user.token}`
@@ -107,7 +108,7 @@ const ProductManager = () => {
                 : `/api/products`;
             const method = currentProduct ? 'PUT' : 'POST';
 
-            const res = await fetch(url, {
+            const res = await fetchApi(url, {
                 method,
                 headers: {
                     Authorization: `Bearer ${user.token}`

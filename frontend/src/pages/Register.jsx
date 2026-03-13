@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import { fetchApi } from '../utils/api';
 
 const Register = () => {
     const [name, setName] = useState('');
@@ -15,7 +16,7 @@ const Register = () => {
         setError('');
         setLoading(true);
         try {
-            const res = await fetch('/api/users', {
+            const res = await fetchApi('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

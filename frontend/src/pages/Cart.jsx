@@ -7,6 +7,7 @@ import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const Cart = () => {
@@ -23,7 +24,7 @@ const Cart = () => {
         if (user) {
             console.log(`[DEBUG FRONTEND] Fetching orders for ${user.email}. Token present: ${!!user.token}`);
             setLoadingOrders(true);
-            fetch(`/api/orders/myorders?email=${encodeURIComponent(user.email || '')}`, {
+            fetchApi(`/api/orders/myorders?email=${encodeURIComponent(user.email || '')}`, {
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
                 }
@@ -57,7 +58,7 @@ const Cart = () => {
 
         setConfirmingId(orderId);
         try {
-            const res = await fetch(`/api/orders/${orderId}/not-received`, {
+            const res = await fetchApi(`/api/orders/${orderId}/not-received`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ const Cart = () => {
         
         setConfirmingId(orderId);
         try {
-            const res = await fetch(`/api/orders/${orderId}/received`, {
+            const res = await fetchApi(`/api/orders/${orderId}/received`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -592,7 +593,7 @@ const ReviewModal = ({ order, onClose, user }) => {
         if (!ratings[item.product]) return toast.error("Please select a star rating first.");
         setSubmitting(true);
         try {
-            const res = await fetch(`/api/reviews/${item.product}`, {
+            const res = await fetchApi(`/api/reviews/${item.product}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

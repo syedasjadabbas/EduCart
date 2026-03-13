@@ -95,7 +95,7 @@ router.post('/', upload.single('image'), async (req, res) => {
                         </div>
                     </div>
                     <div style="text-align: center; margin: 32px 0;">
-                        <a href="http://localhost:5173/product/${createdProduct._id}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Product</a>
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/product/${createdProduct._id}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Product</a>
                     </div>
                     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
                     <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>

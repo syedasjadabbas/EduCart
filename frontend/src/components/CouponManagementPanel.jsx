@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { Tag, Plus, CheckCircle, XCircle, Trash2, Power } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../context/AuthContext';
+import { fetchApi } from '../utils/api';
 
 const CouponManagementPanel = () => {
     const { user } = useContext(AuthContext);
@@ -17,7 +18,7 @@ const CouponManagementPanel = () => {
                 return;
             }
 
-            const res = await fetch('/api/coupons', {
+            const res = await fetchApi('/api/coupons', {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
 
@@ -48,7 +49,7 @@ const CouponManagementPanel = () => {
                 return toast.error('You must be logged in as an Admin to create coupons.');
             }
 
-            const res = await fetch('/api/coupons', {
+            const res = await fetchApi('/api/coupons', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ const CouponManagementPanel = () => {
         try {
             if (!user || !user.token) return;
 
-            const res = await fetch(`/api/coupons/${id}/toggle`, {
+            const res = await fetchApi(`/api/coupons/${id}/toggle`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${user.token}` }
             });
@@ -104,7 +105,7 @@ const CouponManagementPanel = () => {
         try {
             if (!user || !user.token) return;
 
-            const res = await fetch(`/api/coupons/${id}`, {
+            const res = await fetchApi(`/api/coupons/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${user.token}` }
             });
