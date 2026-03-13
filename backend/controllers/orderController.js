@@ -58,27 +58,28 @@ const addOrderItems = async (req, res) => {
 
         // Receipt email to student
         const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <div style="background-color: #4f46e5; padding: 24px; text-align: center;">
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #4f46e5, #6366f1); padding: 32px; text-align: center;">
                     <h1 style="color: white; margin: 0; font-size: 24px;">Order Confirmed! 🎓</h1>
+                    <p style="color: #e0e7ff; margin: 8px 0 0 0; font-size: 14px;">Order #${createdOrder._id}</p>
                 </div>
                 <div style="padding: 32px; background-color: white;">
                     <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">Hi <strong>${contactInfo.name || 'Student'}</strong>,</p>
                     <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
-                        Thank you for shopping with EduCart! Your order <strong>#${createdOrder._id}</strong> has been received and is currently being processed.
+                        Thank you for shopping with EduCart! Your order has been received and is currently being processed.
                     </p>
                     
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-                        <h3 style="margin-top: 0; color: #1e293b; font-size: 16px; margin-bottom: 16px;">Order Summary</h3>
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="margin-top: 0; color: #1e293b; font-size: 16px; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Order Summary</h3>
                         ${orderItems.map(item => `
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
-                                <div style="color: #475569; font-size: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px;">
+                                <div style="color: #475569;">
                                     <strong>${item.name}</strong> <span style="color: #94a3b8;">x${item.qty}</span>
                                 </div>
                                 <div style="color: #1e293b; font-weight: 600;">Rs ${(item.price * item.qty).toLocaleString()}</div>
                             </div>
                         `).join('')}
-                        <div style="display: flex; justify-content: space-between; margin-top: 16px; color: #64748b; font-size: 14px;">
+                        <div style="display: flex; justify-content: space-between; margin-top: 16px; color: #64748b; font-size: 14px; border-top: 1px solid #f1f5f9; padding-top: 12px;">
                             <span>Shipping</span>
                             <span>Rs ${shippingPrice}</span>
                         </div>
@@ -89,7 +90,7 @@ const addOrderItems = async (req, res) => {
                     </div>
 
                     <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                        <p style="font-size: 14px; color: #6b7280; margin: 0;">Need help? Reply to this email.<br/>Thanks for choosing EduCart Store!</p>
+                        <p style="font-size: 14px; color: #94a3b8; margin: 0;">Need help? Reply to this email.<br/>Thanks for choosing EduCart Store!</p>
                     </div>
                 </div>
             </div>
@@ -98,25 +99,23 @@ const addOrderItems = async (req, res) => {
 
         // Notification email to admin
         const adminEmailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <div style="background-color: #10b981; padding: 24px; text-align: center;">
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 32px; text-align: center;">
                     <h1 style="color: white; margin: 0; font-size: 24px;">New Order Alert! 📦</h1>
                 </div>
                 <div style="padding: 32px; background-color: white;">
-                    <h2 style="color: #059669; font-size: 28px; margin-top: 0; text-align: center;">Rs ${totalPrice.toLocaleString()}</h2>
+                    <h2 style="color: #059669; font-size: 32px; margin-top: 0; text-align: center; margin-bottom: 24px;">Rs ${totalPrice.toLocaleString()}</h2>
                     
-                    <div style="background-color: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 8px; padding: 20px; margin-top: 24px;">
-                        <h3 style="margin-top: 0; color: #065f46; font-size: 16px; margin-bottom: 16px;">Customer Information</h3>
-                        <p style="margin: 0 0 8px 0; font-size: 15px; color: #064e3b;"><strong>Name:</strong> ${contactInfo.name}</p>
-                        <p style="margin: 0 0 8px 0; font-size: 15px; color: #064e3b;"><strong>Email:</strong> ${contactInfo.email}</p>
+                    <div style="background-color: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 24px; margin-top: 24px;">
+                        <h3 style="margin-top: 0; color: #065f46; font-size: 16px; margin-bottom: 16px; border-bottom: 1px solid #a7f3d0; padding-bottom: 8px;">Customer Information</h3>
+                        <p style="margin: 0 0 10px 0; font-size: 15px; color: #064e3b;"><strong>Name:</strong> ${contactInfo.name}</p>
+                        <p style="margin: 0 0 10px 0; font-size: 15px; color: #064e3b;"><strong>Email:</strong> ${contactInfo.email}</p>
                         <p style="margin: 0; font-size: 15px; color: #064e3b;"><strong>Order ID:</strong> #${createdOrder._id}</p>
                     </div>
 
-                    <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-top: 24px; text-align: center;">
-                        <span style="display: inline-block; padding: 12px 24px; background-color: #f3f4f6; border-radius: 8px; color: #1f2937; font-weight: bold;">
-                            Login to Admin Dashboard to process this order
-                        </span>
-                    </p>
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin" style="background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block;">Open Admin Dashboard</a>
+                    </div>
                 </div>
             </div>
         `;
@@ -190,8 +189,8 @@ const updateOrderToShipped = async (req, res) => {
         if (userEmail) {
             const userName = order.contactInfo?.name || order.user?.name || 'Valued Customer';
             const emailHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 24px; text-align: center;">
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 32px; text-align: center;">
                         <h1 style="color: white; margin: 0; font-size: 24px;">Your Order has been Shipped! 📦</h1>
                     </div>
                     <div style="padding: 32px; background-color: white;">
@@ -199,16 +198,16 @@ const updateOrderToShipped = async (req, res) => {
                         <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
                             Great news! Your EduCart order <strong>#${order._id}</strong> has been shipped and is on its way to you.
                         </p>
-                        <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #3b82f6;">
-                            <p style="margin: 0; font-size: 15px; color: #1e40af;">
-                                <strong>Shipping to:</strong><br/>
+                        <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 24px; margin-bottom: 24px; border-left: 5px solid #3b82f6;">
+                            <h3 style="margin-top: 0; color: #1e40af; font-size: 16px; margin-bottom: 8px;">Shipping to:</h3>
+                            <p style="margin: 0; font-size: 15px; color: #1e40af; line-height: 1.4;">
                                 ${order.shippingAddress?.address || 'N/A'}<br/>
                                 ${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.postalCode || 'N/A'}
                             </p>
                         </div>
-                        <p style="font-size: 16px; color: #374151; line-height: 1.5;">You can track its progress in your order history on the EduCart dashboard.</p>
+                        <p style="font-size: 16px; color: #475569; line-height: 1.5; text-align: center;">You can track its progress in your order history on the EduCart dashboard.</p>
                         <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size: 14px; color: #6b7280; margin: 0;">Thanks for shopping with EduCart!</p>
+                            <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for shopping with EduCart!</p>
                         </div>
                     </div>
                 </div>
@@ -316,28 +315,23 @@ const reportNotReceived = async (req, res) => {
         const userName = order.contactInfo?.name || 'A customer';
         const userEmail = order.contactInfo?.email || 'N/A';
         const adminEmailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <div style="background-color: #ef4444; padding: 24px; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Order Not Received Report</h1>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fee2e2; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Order Not Received</h1>
                 </div>
                 <div style="padding: 32px; background-color: white;">
                     <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">
                         <strong>${userName}</strong> (${userEmail}) has reported that order <strong>#${order._id}</strong> was <span style="color: #ef4444; font-weight: bold;">NOT received</span>.
                     </p>
-                    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; border-left: 4px solid #ef4444;">
-                        <h3 style="margin-top: 0; color: #991b1b; font-size: 15px; margin-bottom: 8px;">Reason</h3>
-                        <p style="margin: 0; font-size: 15px; color: #7f1d1d;">"${req.body.reason || 'No reason provided'}"</p>
+                    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 20px; margin-bottom: 24px; border-left: 5px solid #ef4444;">
+                        <h3 style="margin-top: 0; color: #991b1b; font-size: 15px; margin-bottom: 8px;">Reason Shared:</h3>
+                        <p style="margin: 0; font-size: 15px; color: #7f1d1d; font-style: italic;">"${req.body.reason || 'No reason provided'}"</p>
                     </div>
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                        <p style="margin: 0 0 8px 0; font-size: 14px; color: #475569;"><strong>Report #:</strong> ${order.notReceivedCount}</p>
-                        <p style="margin: 0 0 8px 0; font-size: 14px; color: #475569;"><strong>Shipping Address:</strong> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}</p>
-                        <p style="margin: 0; font-size: 14px; color: #475569;"><strong>Order Total:</strong> Rs ${order.totalPrice.toLocaleString()}</p>
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; font-size: 14px; color: #475569;">
+                        <p style="margin: 0 0 10px 0;"><strong>Report Count:</strong> ${order.notReceivedCount}</p>
+                        <p style="margin: 0 0 10px 0;"><strong>Shipping To:</strong> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}</p>
+                        <p style="margin: 0;"><strong>Order Total:</strong> Rs ${order.totalPrice.toLocaleString()}</p>
                     </div>
-                    <p style="font-size: 16px; color: #374151; line-height: 1.5; text-align: center;">
-                        <span style="display: inline-block; padding: 12px 24px; background-color: #fef2f2; border-radius: 8px; color: #991b1b; font-weight: bold; border: 1px solid #fecaca;">
-                            Please re-ship this order or contact the customer.
-                        </span>
-                    </p>
                 </div>
             </div>
         `;
@@ -391,26 +385,26 @@ const rejectPayment = async (req, res) => {
         if (userEmail) {
             const userName = updated.contactInfo?.name || updated.user?.name || 'Valued Customer';
             const emailHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    <div style="background-color: #ef4444; padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0; font-size: 24px;">Action Required: Payment Issue ⚠️</h1>
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fee2e2; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 32px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">Payment Issue ⚠️</h1>
                     </div>
                     <div style="padding: 32px; background-color: white;">
                         <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">Hi <strong>${userName}</strong>,</p>
                         <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
-                            Unfortunately, there was an issue verifying the payment for your EduCart order <strong>#${updated._id}</strong>.
+                            Unfortunately, there was an issue verifying the payment for your order <strong>#${updated._id}</strong>.
                         </p>
-                        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; border-left: 4px solid #ef4444;">
-                            <h3 style="margin-top: 0; color: #991b1b; font-size: 15px; margin-bottom: 8px;">Reason for Rejection</h3>
-                            <p style="margin: 0; font-size: 15px; color: #7f1d1d; font-weight: 500;">
+                        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 20px; margin-bottom: 24px; border-left: 5px solid #ef4444;">
+                            <h3 style="margin-top: 0; color: #991b1b; font-size: 15px; margin-bottom: 8px;">Reason for Rejection:</h3>
+                            <p style="margin: 0; font-size: 16px; color: #7f1d1d; font-weight: 500;">
                                 "${updated.paymentRejectedReason}"
                             </p>
                         </div>
-                        <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
-                            Your order has been put on hold. Please contact our support team or reply to this email so we can help you resolve this and get your items shipped.
+                        <p style="font-size: 15px; color: #475569; line-height: 1.5; text-align: center;">
+                            Your order is on hold. Please reply to this email or contact support to resolve this so we can ship your items.
                         </p>
                         <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size: 14px; color: #6b7280; margin: 0;">Thanks for shopping with EduCart!</p>
+                            <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for shopping with EduCart!</p>
                         </div>
                     </div>
                 </div>
@@ -480,18 +474,17 @@ const requestRefund = async (req, res) => {
         const userName = order.contactInfo?.name || 'A customer';
         const userEmail = order.contactInfo?.email || 'N/A';
         const adminEmailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 24px; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 24px;">🔄 Refund Request</h1>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">🔄 Refund Requested</h1>
                 </div>
                 <div style="padding: 32px; background-color: white;">
-                    <p style="font-size: 16px; color: #374151;"><strong>${userName}</strong> (${userEmail}) has requested a refund for order <strong>#${order._id}</strong>.</p>
-                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #f59e0b;">
-                        <h3 style="margin-top: 0; color: #92400e;">Reason</h3>
-                        <p style="margin: 0; color: #78350f;">"${order.refundReason}"</p>
+                    <p style="font-size: 16px; color: #374151;"><strong>${userName}</strong> has requested a refund for order <strong>#${order._id}</strong>.</p>
+                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 20px; margin: 24px 0; border-left: 5px solid #f59e0b;">
+                        <h3 style="margin-top: 0; color: #92400e; font-size: 16px;">Reason:</h3>
+                        <p style="margin: 0; color: #78350f; font-style: italic;">"${order.refundReason}"</p>
                     </div>
-                    <p style="color: #475569;">Order Total: <strong>Rs ${order.totalPrice.toLocaleString()}</strong></p>
-                    <p style="text-align: center; margin-top: 24px;"><span style="display: inline-block; padding: 12px 24px; background-color: #fffbeb; border-radius: 8px; color: #92400e; font-weight: bold; border: 1px solid #fde68a;">Please review this request in the Admin Dashboard.</span></p>
+                    <p style="color: #475569; font-size: 15px;">Order Total: <strong>Rs ${order.totalPrice.toLocaleString()}</strong></p>
                 </div>
             </div>
         `;
@@ -536,17 +529,17 @@ const processRefund = async (req, res) => {
             const userName = order.contactInfo?.name || 'Valued Customer';
             const isApproved = status === 'approved';
             const emailHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-                    <div style="background-color: ${isApproved ? '#10b981' : '#ef4444'}; padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0; font-size: 24px;">${isApproved ? '✅ Refund Approved' : '❌ Refund Rejected'}</h1>
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, ${isApproved ? '#10b981, #059669' : '#ef4444, #dc2626'}); padding: 32px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">${isApproved ? 'Refund Approved ✅' : 'Refund Update ❌'}</h1>
                     </div>
                     <div style="padding: 32px; background-color: white;">
                         <p style="font-size: 16px; color: #374151;">Hi <strong>${userName}</strong>,</p>
-                        <p style="font-size: 16px; color: #374151;">Your refund request for order <strong>#${order._id}</strong> has been <strong>${isApproved ? 'approved' : 'rejected'}</strong>.</p>
-                        ${isApproved ? `<p style="color: #059669; font-weight: bold;">Amount: Rs ${order.totalPrice.toLocaleString()} will be refunded to your original payment method.</p>` : ''}
-                        ${adminNote ? `<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;"><h4 style="margin-top: 0; color: #475569;">Admin Note</h4><p style="margin: 0; color: #64748b;">"${adminNote}"</p></div>` : ''}
+                        <p style="font-size: 16px; color: #374151; line-height: 1.5;">Your refund request for order <strong>#${order._id}</strong> has been <strong>${isApproved ? 'approved' : 'rejected'}</strong>.</p>
+                        ${isApproved ? `<div style="background-color: #ecfdf5; padding: 16px; border-radius: 10px; margin: 20px 0; text-align: center; color: #065f46; font-weight: bold; border: 1px solid #a7f3d0;">Amount: Rs ${order.totalPrice.toLocaleString()}</div>` : ''}
+                        ${adminNote ? `<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 20px 0;"><h4 style="margin-top: 0; color: #475569; font-size: 15px;">Note from Store:</h4><p style="margin: 0; color: #64748b; font-style: italic;">"${adminNote}"</p></div>` : ''}
                         <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size: 14px; color: #6b7280;">Thanks for shopping with EduCart!</p>
+                            <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for shopping with EduCart!</p>
                         </div>
                     </div>
                 </div>
@@ -587,24 +580,24 @@ const reshipOrder = async (req, res) => {
         if (userEmail) {
             const userName = order.contactInfo?.name || order.user?.name || 'Valued Customer';
             const emailHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    <div style="background: linear-gradient(135deg, #10b981, #3b82f6); padding: 24px; text-align: center;">
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, #10b981, #3b82f6); padding: 32px; text-align: center;">
                         <h1 style="color: white; margin: 0; font-size: 24px;">Your Order has been RE-SHIPPED! 🚀</h1>
                     </div>
                     <div style="padding: 32px; background-color: white;">
                         <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">Hi <strong>${userName}</strong>,</p>
                         <p style="font-size: 16px; color: #374151; line-height: 1.5; margin-bottom: 24px;">
-                            We received your report about order <strong>#${order._id}</strong> not being delivered. We've investigated and **sent your package again!**
+                            We processed your report about order <strong>#${order._id}</strong>. Good news — we've **sent your package again!**
                         </p>
-                        <div style="background-color: #ecfdf5; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #10b981;">
-                            <p style="margin: 0; font-size: 15px; color: #065f46;">
+                        <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 24px; margin-bottom: 24px; border-left: 5px solid #10b981;">
+                            <p style="margin: 0; font-size: 15px; color: #065f46; line-height: 1.4;">
                                 <strong>Status:</strong> Re-shipped Today<br/>
-                                <strong>Shipping to:</strong> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}
+                                <strong>To:</strong> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}
                             </p>
                         </div>
-                        <p style="font-size: 16px; color: #374151; line-height: 1.5;">We hope it reaches you soon this time! You can track it in your dashboard.</p>
+                        <p style="font-size: 15px; color: #475569; line-height: 1.5; text-align: center;">We hope it reaches you soon! Track it via your dashboard.</p>
                         <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size: 14px; color: #6b7280; margin: 0;">Thanks for your patience with EduCart!</p>
+                            <p style="font-size: 14px; color: #94a3b8; margin: 0;">Thanks for your patience with EduCart!</p>
                         </div>
                     </div>
                 </div>

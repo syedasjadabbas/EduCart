@@ -27,28 +27,26 @@ router.post('/', async (req, res) => {
                 email,
                 subject: 'Welcome to EduCart Newsletter! 🎉',
                 html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <h1 style="color: #2563eb; margin: 0;">EduCart</h1>
-                        <p style="color: #64748b; margin-top: 4px;">Student Essentials Store</p>
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 32px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">You're In! 📬</h1>
                     </div>
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <div style="display: inline-block; background-color: #dbeafe; padding: 16px; border-radius: 50%;">
-                            <span style="font-size: 36px;">📬</span>
+                    <div style="padding: 32px; background-color: white;">
+                        <h2 style="color: #2563eb; margin-top: 0;">Welcome to Our Newsletter</h2>
+                        <p style="color: #475569; font-size: 16px; line-height: 1.6;">Thank you for subscribing to the <strong>EduCart Newsletter</strong>! You'll be the first to know about new student essentials, exclusive deals, and upcoming promos.</p>
+                        
+                        <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1e40af; padding: 20px; border-radius: 12px; text-align: center; margin: 24px 0; border: 1px solid #bfdbfe;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 18px;">🛍️ What's Coming?</h3>
+                            <p style="margin: 0; font-size: 14px; opacity: 0.9;">New product alerts • Student-only discounts • Early access</p>
+                        </div>
+
+                        <div style="text-align: center; margin: 32px 0;">
+                            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);">Browse Products</a>
+                        </div>
+                        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                            <p style="color: #94a3b8; font-size: 14px; margin: 0;">© 2026 EduCart Store. All rights reserved.</p>
                         </div>
                     </div>
-                    <h2 style="color: #2563eb; text-align: center;">Welcome to Our Newsletter!</h2>
-                    <p style="color: #475569;">Hi there,</p>
-                    <p style="color: #475569;">Thank you for subscribing to the <strong>EduCart Newsletter</strong>! You'll be the first to know when we add new products, run exclusive deals, and launch special student promotions.</p>
-                    <div style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 24px 0;">
-                        <h3 style="margin: 0 0 8px 0; font-size: 20px;">🛍️ What to Expect</h3>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">New product alerts • Exclusive student discounts • Early access to sales</p>
-                    </div>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Browse Products</a>
-                    </div>
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-                    <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>
                 </div>
                 `
             });

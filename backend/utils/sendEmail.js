@@ -1,32 +1,37 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-    // Note for User: To test out actual emails, you need to configure your own email/password combo.
-    // E.g., via a test SMTP server like Mailtrap or real service like SendGrid, or Gmail APP password.
-    // For now, it will safely attempt or log to console.
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : '';
 
-    // We can use Ethereal for dummy emails if no real auth is provided, but since we are showing them the template:
+    if (!emailUser || !emailPass) {
+        console.error('[EMAIL ERROR] Credentials missing in .env');
+        return;
+    }
+
     const transporter = nodemailer.createTransport({
-        service: 'gmail', // You can change this to your preferred provider
+        service: 'gmail',
         auth: {
-            user: process.env.EMAIL_USER || 'your.email@gmail.com',     // Set this in .env
-            pass: process.env.EMAIL_PASS || 'your-app-password-here'    // Set this in .env
+            user: emailUser,
+            pass: emailPass
         }
     });
 
     const mailOptions = {
-        from: `EduCart Store <no-reply@educart.com>`,
+        from: `"EduCart Store" <${emailUser}>`,
         to: options.email,
         subject: options.subject,
+        text: options.text || '',
         html: options.html,
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Email properly dispatched to ${options.email}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[EMAIL SUCCESS] Sent to ${options.email}`);
+        return info;
     } catch (error) {
-        console.error('Error sending email. Remember to add your real SMTP info to your .env file.', error);
-        // We aren't failing the whole backend just because the fake SMTP isn't set up yet
+        console.error(`[EMAIL FAILURE] ${error.message}`);
+        throw error;
     }
 };
 
