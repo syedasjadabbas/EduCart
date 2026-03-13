@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/currency';
 import { Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const Checkout = () => {
@@ -41,7 +42,7 @@ const Checkout = () => {
         setCouponError('');
         if (!promoCode.trim()) return;
         try {
-            const res = await fetch('/api/coupons/validate', {
+            const res = await fetchApi('/api/coupons/validate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,7 +97,7 @@ const Checkout = () => {
         }
 
         try {
-            const res = await fetch('/api/orders', {
+            const res = await fetchApi('/api/orders', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
@@ -200,7 +201,7 @@ const Checkout = () => {
                                 <div className="bg-[var(--color-background)] border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-4">
 
                                     {/* Payment Method Radios */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                         {/* EasyPaisa */}
                                         <label htmlFor="easypaisa" className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer font-semibold text-sm transition-all ${paymentMethod === 'easypaisa' ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'border-slate-200 dark:border-slate-700 text-[var(--color-text-muted)] hover:border-slate-300'}`}>
                                             <input type="radio" id="easypaisa" name="payment" className="sr-only" checked={paymentMethod === 'easypaisa'} onChange={() => { setPaymentMethod('easypaisa'); setScreenshotFile(null); }} />
@@ -220,6 +221,11 @@ const Checkout = () => {
                                         <label htmlFor="nayapay" className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer font-semibold text-sm transition-all ${paymentMethod === 'nayapay' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300' : 'border-slate-200 dark:border-slate-700 text-[var(--color-text-muted)] hover:border-slate-300'}`}>
                                             <input type="radio" id="nayapay" name="payment" className="sr-only" checked={paymentMethod === 'nayapay'} onChange={() => { setPaymentMethod('nayapay'); setScreenshotFile(null); }} />
                                             NayaPay
+                                        </label>
+                                        {/* Meezan Bank */}
+                                        <label htmlFor="meezanbank" className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer font-semibold text-sm transition-all ${paymentMethod === 'meezanbank' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300' : 'border-slate-200 dark:border-slate-700 text-[var(--color-text-muted)] hover:border-slate-300'}`}>
+                                            <input type="radio" id="meezanbank" name="payment" className="sr-only" checked={paymentMethod === 'meezanbank'} onChange={() => { setPaymentMethod('meezanbank'); setScreenshotFile(null); }} />
+                                            Meezan Bank
                                         </label>
                                     </div>
 
@@ -287,10 +293,32 @@ const Checkout = () => {
                                         </div>
                                     )}
 
+                                    {/* Meezan Bank */}
+                                    {paymentMethod === 'meezanbank' && (
+                                        <div className="mt-4 animate-fade-in bg-teal-50 dark:bg-teal-900/10 p-4 rounded-xl border border-teal-100 dark:border-teal-800/30 space-y-3">
+                                            <p className="text-sm text-[var(--color-text-main)]">Please transfer your total payment to the following Meezan Bank account:</p>
+                                            <p className="text-sm font-medium text-[var(--color-text-main)]">Account Holder: <strong>SYED MUHAMMAD ASJAD ABBAS ZAIDI</strong></p>
+                                            <p className="text-sm font-medium text-[var(--color-text-main)]">Branch: <strong>Meezan Bank - MAIN BR ABBOTTABAD</strong></p>
+                                            <div>
+                                                <p className="text-xs text-[var(--color-text-muted)] mb-0.5">Account Number</p>
+                                                <p className="text-xl font-bold tracking-wider text-teal-600 dark:text-teal-400">15010108945490</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-[var(--color-text-muted)] mb-0.5">IBAN</p>
+                                                <p className="text-base font-bold tracking-wider text-teal-600 dark:text-teal-400">PK79MEZN0015010108945490</p>
+                                            </div>
+                                            <div className="pt-1">
+                                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Upload Transaction Screenshot *</label>
+                                                <input required type="file" accept="image/*"
+                                                    onChange={(e) => setScreenshotFile(e.target.files[0])}
+                                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900/30 dark:file:text-teal-400" />
+                                                {screenshotFile && <p className="text-xs text-green-600 mt-1">✅ {screenshotFile.name} selected</p>}
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
                             </div>
-
-
                         </form>
                     </div>
 

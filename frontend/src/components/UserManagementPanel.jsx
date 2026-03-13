@@ -3,6 +3,7 @@ import { Users, Search, AlertCircle, CheckCircle, Clock, Download } from 'lucide
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const UserManagementPanel = () => {
@@ -13,7 +14,7 @@ const UserManagementPanel = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('/api/users', {
+            const res = await fetchApi('/api/users', {
                 headers: {
                     'Authorization': `Bearer ${user?.token}`
                 }
@@ -70,7 +71,7 @@ const UserManagementPanel = () => {
                             link.href = `/api/users/export-csv`;
                             link.setAttribute('download', '');
                             // We need auth header, so use fetch
-                            fetch('/api/users/export-csv', { headers: { 'Authorization': `Bearer ${user?.token}` } })
+                            fetchApi('/api/users/export-csv', { headers: { 'Authorization': `Bearer ${user?.token}` } })
                                 .then(res => res.blob())
                                 .then(blob => {
                                     const url = URL.createObjectURL(blob);

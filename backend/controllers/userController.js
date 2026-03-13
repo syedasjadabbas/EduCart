@@ -34,7 +34,8 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid user data' });
         }
 
-        const verifyUrl = `http://localhost:5173/verify-email/${verificationToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const verifyUrl = `${frontendUrl}/verify-email/${verificationToken}`;
 
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -129,7 +130,8 @@ const forgotPassword = async (req, res) => {
 
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -377,7 +379,7 @@ const reviewStudentVerification = async (req, res) => {
                     <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your flat 15% student discount is now automatically applied on every purchase.</p>
                 </div>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="http://localhost:5173/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Start Shopping Now</a>
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Start Shopping Now</a>
                 </div>
                 <p style="color: #64748b; font-size: 14px;">Thank you for being part of the EduCart student community. Enjoy your discounted experience!</p>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
@@ -405,7 +407,7 @@ const reviewStudentVerification = async (req, res) => {
                 </ul>
                 <p style="color: #475569;">Don't worry — you can try again! Please upload a clearer photo of your valid student ID card.</p>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="http://localhost:5173/verify" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Re-upload Student ID</a>
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Re-upload Student ID</a>
                 </div>
                 <p style="color: #64748b; font-size: 14px;">If you believe this was a mistake, please contact our support team for assistance.</p>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />

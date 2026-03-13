@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const Profile = () => {
@@ -29,7 +30,7 @@ const Profile = () => {
         if (!user?.token) return;
         setReviewsLoading(true);
         try {
-            const res = await fetch('/api/reviews/mine', {
+            const res = await fetchApi('/api/reviews/mine', {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             if (res.ok) {
@@ -54,7 +55,7 @@ const Profile = () => {
     const handleDeleteReview = async (reviewId) => {
         setDeletingId(reviewId);
         try {
-            const res = await fetch(`/api/reviews/${reviewId}`, {
+            const res = await fetchApi(`/api/reviews/${reviewId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${user.token}` }
             });
@@ -81,7 +82,7 @@ const Profile = () => {
 
     const handleSaveEdit = async (review) => {
         try {
-            const res = await fetch(`/api/reviews/${review.productId?._id || review.productId}`, {
+            const res = await fetchApi(`/api/reviews/${review.productId?._id || review.productId}`, {
                 method: 'POST',
                 headers: { 
                     Authorization: `Bearer ${user.token}`,
@@ -130,7 +131,7 @@ const Profile = () => {
             if (password) data.append('password', password);
             if (picFile) data.append('profilePicture', picFile);
 
-            const res = await fetch('/api/users/profile', {
+            const res = await fetchApi('/api/users/profile', {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${user.token}` },
                 body: data,

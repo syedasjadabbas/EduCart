@@ -6,6 +6,7 @@ import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageHelper';
+import { fetchApi } from '../utils/api';
 
 
 const OrderDetail = () => {
@@ -24,7 +25,7 @@ const OrderDetail = () => {
             // Artificial delay to show off beautiful skeletons for 600ms
             await new Promise(r => setTimeout(r, 600));
 
-            const res = await fetch(`/api/orders/${id}`, {
+            const res = await fetchApi(`/api/orders/${id}`, {
                 headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {},
             });
             if (!res.ok) throw new Error('Order not found');
@@ -48,7 +49,7 @@ const OrderDetail = () => {
 
         setReporting(true);
         try {
-            const res = await fetch(`/api/orders/${id}/not-received`, {
+            const res = await fetchApi(`/api/orders/${id}/not-received`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ const OrderDetail = () => {
     const handleConfirmReceived = async () => {
         setReporting(true);
         try {
-            const res = await fetch(`/api/orders/${id}/received`, {
+            const res = await fetchApi(`/api/orders/${id}/received`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -460,7 +461,7 @@ const OrderDetail = () => {
                                             onClick={async () => {
                                                 setSubmittingRefund(true);
                                                 try {
-                                                    const res = await fetch(`/api/orders/${id}/request-refund`, {
+                                                    const res = await fetchApi(`/api/orders/${id}/request-refund`, {
                                                         method: 'PUT',
                                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
                                                         body: JSON.stringify({ reason: refundReason })

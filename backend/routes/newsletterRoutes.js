@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
                         <p style="margin: 0; font-size: 14px; opacity: 0.9;">New product alerts • Exclusive student discounts • Early access to sales</p>
                     </div>
                     <div style="text-align: center; margin: 32px 0;">
-                        <a href="http://localhost:5173/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Browse Products</a>
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/shop" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Browse Products</a>
                     </div>
                     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
                     <p style="color: #94a3b8; font-size: 12px; text-align: center;">© 2026 EduCart. All rights reserved.</p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
+import { fetchApi } from '../utils/api';
 
 const VerifyEmail = () => {
     const { token } = useParams();
@@ -10,8 +11,11 @@ const VerifyEmail = () => {
     useEffect(() => {
         const verify = async () => {
             try {
-                const res = await fetch(`/api/users/verify-email/${token}`);
-                const data = await res.json();
+                const res = await fetchApi(`/api/users/verify-email/${token}`);
+                const text = await res.text();
+                if (!text) throw new Error('Empty response');
+                const data = JSON.parse(text);
+                
                 if (res.ok) {
                     setStatus('success');
                     setMessage(data.message);

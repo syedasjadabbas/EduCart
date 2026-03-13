@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Lock, Loader2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { fetchApi } from '../utils/api';
 
 const ResetPassword = () => {
     const { token } = useParams();
@@ -19,7 +20,7 @@ const ResetPassword = () => {
         setIsLoading(true);
         setError('');
         try {
-            const res = await fetch(`/api/users/reset-password/${token}`, {
+            const res = await fetchApi(`/api/users/reset-password/${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password })
