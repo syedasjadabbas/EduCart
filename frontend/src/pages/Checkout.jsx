@@ -1,6 +1,5 @@
 import { Lock, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
-import { useContext, useState, useEffect } from 'react';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { useContext, useState } from 'react';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
@@ -16,14 +15,7 @@ const Checkout = () => {
     const [isPlaced, setIsPlaced] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('easypaisa');
     const [screenshotFile, setScreenshotFile] = useState(null);
-    const [clientId, setClientId] = useState('');
-
-    useEffect(() => {
-        fetchApi('/api/config/paypal')
-            .then(res => res.text())
-            .then(id => setClientId(id))
-            .catch(() => setClientId('sb'));
-    }, []);
+    const [isMockLoading, setIsMockLoading] = useState(false);
     const [promoCode, setPromoCode] = useState('');
     const [appliedDiscount, setAppliedDiscount] = useState(0); // in percentage
     const [couponError, setCouponError] = useState('');
@@ -125,6 +117,30 @@ const Checkout = () => {
             console.error(err);
             toast.error('Network error. Please check your connection and try again.');
         }
+    };
+
+    const handleMockPayPal = () => {
+        const form = document.getElementById('checkout-form');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        setIsMockLoading(true);
+        toast.loading('Processing Sandbox Payment...', { id: 'mock-paypal' });
+        setTimeout(() => {
+            toast.dismiss('mock-paypal');
+            toast.success('Sandbox Payment Successful!');
+            const mockDetails = {
+                id: 'MOCK-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                status: 'COMPLETED',
+                update_time: new Date().toISOString(),
+                payer: {
+                    email_address: 'sandbox-buyer@paypal.com'
+                }
+            };
+            handlePayPalSuccess(mockDetails);
+            setIsMockLoading(false);
+        }, 1500);
     };
 
     const handlePayPalSuccess = async (details) => {
@@ -452,29 +468,15 @@ const Checkout = () => {
                                 <span className="text-2xl font-black text-blue-600">{formatCurrency(total)}</span>
                             </div>
 
-                            {paymentMethod === 'paypal' && clientId ? (
-                                <PayPalScriptProvider options={{ "client-id": clientId, currency: "USD", intent: "capture" }}>
-                                    <PayPalButtons 
-                                        createOrder={(data, actions) => {
-                                            const form = document.getElementById('checkout-form');
-                                            if (!form.checkValidity()) {
-                                                form.reportValidity();
-                                                return actions.reject();
-                                            }
-                                            return actions.order.create({
-                                                purchase_units: [{ amount: { value: (total / 280).toFixed(2) } }]
-                                            });
-                                        }}
-                                        onApprove={(data, actions) => {
-                                            return actions.order.capture().then((details) => {
-                                                handlePayPalSuccess(details);
-                                            });
-                                        }}
-                                        onError={(err) => {
-                                            toast.error('PayPal Transaction failed.');
-                                        }}
-                                    />
-                                </PayPalScriptProvider>
+                            {paymentMethod === 'paypal' ? (
+                                <button
+                                    type="button"
+                                    onClick={handleMockPayPal}
+                                    disabled={isMockLoading}
+                                    className="w-full py-4 px-4 bg-[#ffc439] hover:bg-[#fbd055] text-slate-800 font-extrabold rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                >
+                                    {isMockLoading ? 'Processing...' : `Pay ${formatCurrency(total)} with Sandbox PayPal`}
+                                </button>
                             ) : (
                                 <button
                                     type="submit"
