@@ -1,5 +1,6 @@
 import { Lock, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { formatCurrency } from '../utils/currency';
@@ -15,6 +16,14 @@ const Checkout = () => {
     const [isPlaced, setIsPlaced] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('easypaisa');
     const [screenshotFile, setScreenshotFile] = useState(null);
+    const [clientId, setClientId] = useState('');
+
+    useEffect(() => {
+        fetchApi('/api/config/paypal')
+            .then(res => res.text())
+            .then(id => setClientId(id))
+            .catch(() => setClientId('sb'));
+    }, []);
     const [promoCode, setPromoCode] = useState('');
     const [appliedDiscount, setAppliedDiscount] = useState(0); // in percentage
     const [couponError, setCouponError] = useState('');
@@ -115,6 +124,49 @@ const Checkout = () => {
         } catch (err) {
             console.error(err);
             toast.error('Network error. Please check your connection and try again.');
+        }
+    };
+
+    const handlePayPalSuccess = async (details) => {
+        const formData = new FormData(document.getElementById('checkout-form'));
+        const orderData = {
+            orderItems: cartItems.map(item => ({
+                name: item.name, qty: item.qty, image: item.image,
+                price: item.price, product: item._id
+            })),
+            shippingAddress: {
+                address: formData.get('address'), city: formData.get('city'), postalCode: formData.get('postalCode'), country: 'Pakistan'
+            },
+            contactInfo: {
+                name: formData.get('name'), email: formData.get('email'), phone: formData.get('phone')
+            },
+            paymentMethod: 'PayPal',
+            itemsPrice: subtotal,
+            taxPrice: 0,
+            shippingPrice: shipping,
+            totalPrice: total
+        };
+
+        try {
+            const res = await fetchApi('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+                body: JSON.stringify(orderData),
+            });
+            if (res.ok) {
+                const createdOrder = await res.json();
+                await fetchApi(`/api/orders/${createdOrder._id}/pay`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+                    body: JSON.stringify(details),
+                });
+                emptyCart();
+                setIsPlaced(true);
+            } else {
+                toast.error('Failed to create order on server.');
+            }
+        } catch (err) {
+            toast.error('Network error during PayPal order processing.');
         }
     };
 
@@ -225,7 +277,12 @@ const Checkout = () => {
                                         {/* Meezan Bank */}
                                         <label htmlFor="meezanbank" className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer font-semibold text-sm transition-all ${paymentMethod === 'meezanbank' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300' : 'border-slate-200 dark:border-slate-700 text-[var(--color-text-muted)] hover:border-slate-300'}`}>
                                             <input type="radio" id="meezanbank" name="payment" className="sr-only" checked={paymentMethod === 'meezanbank'} onChange={() => { setPaymentMethod('meezanbank'); setScreenshotFile(null); }} />
-                                            Meezan Bank
+                                            Meezan
+                                        </label>
+                                        {/* PayPal */}
+                                        <label htmlFor="paypal" className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer font-semibold text-sm transition-all ${paymentMethod === 'paypal' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'border-slate-200 dark:border-slate-700 text-[var(--color-text-muted)] hover:border-slate-300'}`}>
+                                            <input type="radio" id="paypal" name="payment" className="sr-only" checked={paymentMethod === 'paypal'} onChange={() => { setPaymentMethod('paypal'); setScreenshotFile(null); }} />
+                                            PayPal
                                         </label>
                                     </div>
 
@@ -395,13 +452,38 @@ const Checkout = () => {
                                 <span className="text-2xl font-black text-blue-600">{formatCurrency(total)}</span>
                             </div>
 
-                            <button
-                                type="submit"
-                                form="checkout-form"
-                                className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
-                            >
-                                Pay {formatCurrency(total)}
-                            </button>
+                            {paymentMethod === 'paypal' && clientId ? (
+                                <PayPalScriptProvider options={{ "client-id": clientId, currency: "USD", intent: "capture" }}>
+                                    <PayPalButtons 
+                                        createOrder={(data, actions) => {
+                                            const form = document.getElementById('checkout-form');
+                                            if (!form.checkValidity()) {
+                                                form.reportValidity();
+                                                return actions.reject();
+                                            }
+                                            return actions.order.create({
+                                                purchase_units: [{ amount: { value: (total / 280).toFixed(2) } }]
+                                            });
+                                        }}
+                                        onApprove={(data, actions) => {
+                                            return actions.order.capture().then((details) => {
+                                                handlePayPalSuccess(details);
+                                            });
+                                        }}
+                                        onError={(err) => {
+                                            toast.error('PayPal Transaction failed.');
+                                        }}
+                                    />
+                                </PayPalScriptProvider>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    form="checkout-form"
+                                    className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                                >
+                                    Pay {formatCurrency(total)}
+                                </button>
+                            )}
 
                             <div className="mt-6 space-y-3">
                                 <div className="flex items-center gap-3 text-xs text-slate-500">

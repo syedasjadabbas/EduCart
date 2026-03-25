@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Star, ShoppingCart, ShieldCheck, Truck, ArrowLeft, Plus, Minus, Loader, Share2, Copy, CheckCircle } from 'lucide-react';
+import { Star, ShoppingCart, ShieldCheck, Truck, ArrowLeft, Plus, Minus, Loader, Share2, Copy, CheckCircle, Heart } from 'lucide-react';
 import { useState, useContext, useEffect, useRef } from 'react';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
@@ -65,6 +65,33 @@ const ProductDetails = () => {
     };
 
     const [notFound, setNotFound] = useState(false);
+    const [inWishlist, setInWishlist] = useState(false);
+
+    const handleAddToWishlist = async () => {
+        if (!user) {
+            toast.error('Please login to manage wishlist!');
+            navigate('/login');
+            return;
+        }
+        try {
+            const res = await fetchApi('/api/wishlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`
+                },
+                body: JSON.stringify({ productId: product._id })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setInWishlist(data.action === 'added');
+                toast.success(data.action === 'added' ? 'Added to wishlist' : 'Removed from wishlist');
+            }
+        } catch (error) {
+            toast.error('Failed to update wishlist');
+        }
+    };
 
     useEffect(() => {
         setPageLoading(true);
@@ -100,6 +127,19 @@ const ProductDetails = () => {
                     })
                     .catch(err => console.error('Failed to load reviews:', err))
                     .finally(() => setReviewsLoading(false));
+
+                if (user) {
+                    fetchApi('/api/wishlist', {
+                        headers: { Authorization: `Bearer ${user.token}` }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.products && data.products.some(p => p._id === prodData._id || p === prodData._id)) {
+                            setInWishlist(true);
+                        }
+                    })
+                    .catch(() => {});
+                }
             })
             .catch(err => {
                 console.error('Failed to load product:', err);
@@ -332,6 +372,13 @@ const ProductDetails = () => {
                                 >
                                     <ShoppingCart className="h-5 w-5" />
                                     {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+                                </button>
+                                <button
+                                    onClick={handleAddToWishlist}
+                                    className={`p-4 rounded-xl border transition-colors flex items-center justify-center shrink-0 ${inWishlist ? 'bg-rose-50 border-rose-200 text-rose-500 dark:bg-rose-900/20 dark:border-rose-900/50' : 'bg-[var(--color-background)] border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-500 hover:border-rose-200 dark:hover:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-900/20'}`}
+                                    title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                                >
+                                    <Heart className={`h-6 w-6 transition-transform hover:scale-110 active:scale-95 ${inWishlist ? 'fill-rose-500' : ''}`} />
                                 </button>
                             </div>
 
