@@ -1,18 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Sun, Moon, Menu, Search, Package, Home, BadgeCheck } from 'lucide-react';
+import { ShoppingCart, User, Sun, Moon, Menu, Search, Package, Home, BadgeCheck, Heart } from 'lucide-react';
 import { useContext, useState, useEffect } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import CartContext from '../context/CartContext';
 import AuthContext from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageHelper';
 
-
 const Navbar = () => {
     const { isDark, toggleTheme } = useContext(ThemeContext);
     const { cartItems } = useContext(CartContext);
     const { user, logout } = useContext(AuthContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
@@ -146,17 +144,26 @@ const Navbar = () => {
                             </Link>
                         )}
                         {user?.role !== 'admin' && (
-                            <Link
-                                to="/cart"
-                                className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer dark:text-gray-300"
-                            >
-                                <ShoppingCart className="h-5 w-5" />
-                                {cartItems.length > 0 && (
-                                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-blue-600 rounded-full">
-                                        {cartItems.length}
-                                    </span>
-                                )}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    to="/wishlist"
+                                    className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer dark:text-gray-300"
+                                    title="My Wishlist"
+                                >
+                                    <Heart className="h-5 w-5 text-rose-500" />
+                                </Link>
+                                <Link
+                                    to="/cart"
+                                    className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer dark:text-gray-300"
+                                >
+                                    <ShoppingCart className="h-5 w-5" />
+                                    {cartItems.length > 0 && (
+                                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-blue-600 rounded-full">
+                                            {cartItems.length}
+                                        </span>
+                                    )}
+                                </Link>
+                            </div>
                         )}
                         {/* Mobile menu button */}
                         <button
@@ -212,6 +219,7 @@ const Navbar = () => {
                                             {user.isStudentVerified && <BadgeCheck className="h-4 w-4 text-emerald-500" />}
                                         </span>
                                     </Link>
+                                    <Link to="/wishlist" onClick={() => setIsMenuOpen(false)} className="text-left text-rose-500 hover:text-rose-600">My Wishlist</Link>
                                     <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-left text-blue-600 hover:text-blue-700">My Orders</Link>
                                     <Link to="/verify" onClick={() => setIsMenuOpen(false)} className="text-left text-[var(--color-text-main)] hover:text-blue-500">🏷️ Student Discount</Link>
                                 </>

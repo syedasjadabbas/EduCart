@@ -367,6 +367,32 @@ const approvePayment = async (req, res) => {
     }
 };
 
+// @desc    Update order to paid (User via PayPal)
+// @route   PUT /api/orders/:id/pay
+// @access  Private
+const payOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentStatus = 'approved';
+        order.paymentMethod = 'PayPal';
+        order.paymentResult = {
+            id: req.body.id,
+            status: req.body.status,
+            update_time: req.body.update_time,
+            email_address: req.body.payer.email_address,
+        };
+
+        const updatedOrder = await order.save();
+        res.json(updatedOrder);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Admin reject payment
 // @route   PUT /api/orders/:id/reject-payment
 // @access  Admin
@@ -625,4 +651,5 @@ module.exports = {
     requestRefund,
     processRefund,
     reshipOrder,
+    payOrder,
 };

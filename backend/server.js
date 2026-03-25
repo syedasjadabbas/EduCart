@@ -50,6 +50,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 const couponRoutes = require('./routes/couponRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
 
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
@@ -57,6 +58,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+
+app.get('/api/config/paypal', (req, res) => res.send(process.env.PAYPAL_CLIENT_ID || 'sb'));
 
 app.get('/', (req, res) => {
     res.send('EduCart API is running...');

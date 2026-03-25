@@ -20,6 +20,7 @@ import StudentDiscount from './pages/StudentDiscount';
 import VerifyEmail from './pages/VerifyEmail';
 import Profile from './pages/Profile';
 import OrderDetail from './pages/OrderDetail';
+import Wishlist from './pages/Wishlist';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -70,6 +71,7 @@ function App() {
                     <Route path="/verify-email/:token" element={<VerifyEmail />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/order/:id" element={<OrderDetail />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
                   </Routes>
                 </PageTransition>
               </main>
