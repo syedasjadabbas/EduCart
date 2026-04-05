@@ -109,13 +109,26 @@ const ProductDetails = () => {
                     return;
                 }
                 setProduct(prodData);
-                if (Array.isArray(allProducts)) {
-                    let related = allProducts.filter(p => p._id !== prodData._id && p.category === prodData.category).slice(0, 4);
-                    if (related.length < 4) {
-                        const more = allProducts.filter(p => p._id !== prodData._id && !related.map(r => r._id).includes(p._id)).slice(0, 4 - related.length);
-                        related.push(...more);
+
+                // Save to viewed history
+                try {
+                    let viewed = JSON.parse(localStorage.getItem('viewedProducts') || '[]');
+                    if (!viewed.includes(prodData._id)) {
+                        viewed = [prodData._id, ...viewed].slice(0, 10);
+                        localStorage.setItem('viewedProducts', JSON.stringify(viewed));
                     }
-                    setRelatedProducts(related);
+
+                    // Fetch Recommendations from AI endpoint
+                    fetchApi(`/api/chatbot/recommendations?productId=${prodData._id}&viewedIds=${JSON.stringify(viewed)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (Array.isArray(data)) {
+                                setRelatedProducts(data);
+                            }
+                        })
+                        .catch(err => console.error('Failed to load recommendations', err));
+                } catch (e) {
+                    console.error('History error', e);
                 }
 
                 // Fetch reviews using the actual product ID
