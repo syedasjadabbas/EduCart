@@ -29,6 +29,7 @@ import BackToTop from './components/BackToTop';
 import PageTransition from './components/PageTransition';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
+import Chatbot from './components/Chatbot';
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
                 </PageTransition>
               </main>
               <Footer />
+              <Chatbot />
             </div>
           </Router>
         </CartProvider>
