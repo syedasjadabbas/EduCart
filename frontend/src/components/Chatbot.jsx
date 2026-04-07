@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { MessageCircle, X, Send, Bot, User, ShoppingBag, Package, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import AuthContext from '../context/AuthContext';
+import CartContext from '../context/CartContext';
 import { fetchApi } from '../utils/api';
 import { getImageUrl } from '../utils/imageHelper';
 
@@ -14,13 +14,16 @@ export default function Chatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const { user } = useAuth();
-  const { addToCart } = useCart();
+  const { user } = useContext(AuthContext);
+  const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
+
+  const faqs = ["Shipping info", "Return policy", "Payment methods"];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
 
   useEffect(() => {
     if (isOpen) {
@@ -69,6 +72,26 @@ export default function Chatbot() {
       setIsLoading(false);
     }
   };
+
+  const handleQuickFAQ = (faqText) => {
+      const e = { preventDefault: () => {} };
+      setInput(faqText);
+      // We need to wait for state to update, or just pass directly
+      setTimeout(() => {
+          document.getElementById("chat-submit-btn")?.click();
+      }, 0);
+  };
+
+  const renderText = (text) => {
+      if (!text) return null;
+      return text.split('\n').map((line, i) => (
+          <span key={i}>
+              {line.split('**').map((part, index) => index % 2 === 1 ? <strong key={index}>{part}</strong> : part)}
+              <br />
+          </span>
+      ));
+  };
+
 
   const handleAction = (msg) => {
       if (msg.actionType === 'cart_checkout') {
@@ -126,7 +149,9 @@ export default function Chatbot() {
               </div>
               
               <div className={`p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none shadow-sm'}`}>
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {renderText(msg.text)}
+                </p>
                 
                 {/* Product List Render */}
                 {msg.type === 'products' && msg.data && msg.data.length > 0 && (
@@ -207,8 +232,18 @@ export default function Chatbot() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Quick FAQ Chips */}
+      <div className="px-3 pt-2 pb-1 bg-white dark:bg-slate-800 flex gap-2 overflow-x-auto scrollbar-hide shrink-0 border-t border-slate-100 dark:border-slate-700">
+          {faqs.map((faq, i) => (
+             <button key={i} onClick={() => handleQuickFAQ(faq)} 
+                className="whitespace-nowrap px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-medium text-slate-600 dark:text-slate-300 rounded-full hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/40 transition-colors">
+                {faq}
+             </button>
+          ))}
+      </div>
+
       {/* Input Area */}
-      <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
+      <div className="p-3 bg-white dark:bg-slate-800">
         <form onSubmit={handleSubmit} className="flex gap-2 relative">
           <input
             type="text"
@@ -219,6 +254,7 @@ export default function Chatbot() {
             autoFocus
           />
           <button 
+            id="chat-submit-btn"
             type="submit"
             disabled={!input.trim() || isLoading}
             className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors flex items-center justify-center shrink-0"
