@@ -48,17 +48,17 @@ const handleChat = async (req, res) => {
             case 'faq_shipping':
                 return res.json({
                     type: 'text',
-                    message: "We offer standard and express shipping. Standard shipping typically takes 3-5 business days. Express takes 1-2 days."
+                    message: "📦 **Shipping Information:**\n\n• Standard Shipping: 3-5 business days (PKR 150)\n• Express Shipping: 1-2 business days (PKR 300)\n• FREE shipping on orders over PKR 5000!\n\nWe deliver anywhere in Pakistan using reliable courier services."
                 });
             case 'faq_return':
                 return res.json({
                     type: 'text',
-                    message: "You can return items within 30 days of receipt. Please ensure they are in original condition."
+                    message: "🔄 **Return Policy:**\n\n• You can return items within 7 days of delivery.\n• Items must be unused and in original packaging.\n• For defective items, we offer a 100% refund or free replacement.\n\nNeed to return something? Go to 'My Orders' and click 'Request Return'."
                 });
             case 'faq_payment':
                 return res.json({
                     type: 'text',
-                    message: "We accept PayPal, Credit/Debit cards, and Bank Transfers."
+                    message: "💳 **Payment Methods:**\n\nWe offer secure payments via:\n• Cash on Delivery (COD)\n• Credit/Debit Cards (Visa/Mastercard)\n• PayPal Integration\n• EasyPaisa & JazzCash\n\nAll transactions are securely encrypted."
                 });
             case 'track_order':
                 if (!userId) {
