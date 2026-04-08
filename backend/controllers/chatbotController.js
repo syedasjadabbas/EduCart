@@ -1,6 +1,38 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
+const cleanCartQuery = (text = '') => {
+    return text
+        .replace(/^(a|an|the)\s+/i, '')
+        .replace(/\s+(to|into|in|from)\s+cart\s*$/i, '')
+        .replace(/\s+please\s*$/i, '')
+        .trim();
+};
+
+const parseCartAction = (message, mode) => {
+    if (!message) return null;
+    const normalized = message.trim();
+
+    if (mode === 'add') {
+        const match = normalized.match(/(?:add|put)\s+(?:(\d+)\s*(?:x|units?)?\s+)?(.+?)(?:\s+(?:to|into|in)\s+cart)?$/i);
+        if (!match) return null;
+
+        const qty = Number(match[1] || 1);
+        const query = cleanCartQuery(match[2]);
+        return {
+            qty: Number.isFinite(qty) && qty > 0 ? qty : 1,
+            query,
+        };
+    }
+
+    const removeMatch = normalized.match(/(?:remove|delete)\s+(.+?)(?:\s+from\s+cart)?$/i);
+    if (!removeMatch) return null;
+
+    return {
+        query: cleanCartQuery(removeMatch[1]),
+    };
+};
+
 // A basic rule-based NLP parser
 const parseIntent = (message) => {
     const lowerMessage = message.toLowerCase();
@@ -22,11 +54,11 @@ const parseIntent = (message) => {
     }
 
     // 4. Cart Assistance
-    if (lowerMessage.includes('add') && lowerMessage.includes('cart')) {
-        return { intent: 'cart_add', original: message };
+    if ((lowerMessage.includes('add') || lowerMessage.includes('put')) && lowerMessage.includes('cart')) {
+        return { intent: 'cart_add', original: message, cartAction: parseCartAction(message, 'add') };
     }
-    if (lowerMessage.includes('remove') && lowerMessage.includes('cart')) {
-        return { intent: 'cart_remove' };
+    if ((lowerMessage.includes('remove') || lowerMessage.includes('delete')) && lowerMessage.includes('cart')) {
+        return { intent: 'cart_remove', original: message, cartAction: parseCartAction(message, 'remove') };
     }
     if (lowerMessage.includes('checkout') || lowerMessage.includes('abandoned')) {
         return { intent: 'cart_checkout' };
@@ -81,17 +113,48 @@ const handleChat = async (req, res) => {
                 });
             
             case 'cart_add':
+                if (parsed.cartAction?.query) {
+                    const escaped = parsed.cartAction.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const product = await Product.findOne({ name: { $regex: escaped, $options: 'i' } });
+
+                    if (product) {
+                        return res.json({
+                            type: 'action',
+                            actionType: 'cart_add',
+                            message: `I found ${product.name}. Click below to add ${parsed.cartAction.qty} to your cart.`,
+                            data: {
+                                qty: parsed.cartAction.qty,
+                                product,
+                            },
+                        });
+                    }
+                }
+
+                return res.json({
+                    type: 'action',
+                    actionType: 'cart_add',
+                    message: "Tell me what to add, like: 'add 2 notebooks to cart', or use product cards below.",
+                    data: parsed.cartAction?.query
+                        ? { qty: parsed.cartAction.qty || 1, productQuery: parsed.cartAction.query }
+                        : null,
+                });
             case 'cart_remove':
+                return res.json({
+                    type: 'action',
+                    actionType: 'cart_remove',
+                    message: parsed.cartAction?.query
+                        ? `I can remove '${parsed.cartAction.query}' from your cart.`
+                        : "Tell me what to remove, like: 'remove notebook from cart'.",
+                    data: parsed.cartAction?.query
+                        ? { productQuery: parsed.cartAction.query }
+                        : null,
+                });
             case 'cart_checkout':
                 return res.json({
                     type: 'action',
-                    actionType: parsed.intent,
-                    message: parsed.intent === 'cart_add' 
-                        ? "You want to add an item. Just click 'Add to Cart' on the product you like!"
-                        : parsed.intent === 'cart_checkout' 
-                        ? "Ready to checkout? You can go to your Cart to complete payment." 
-                        : "You can manage your items directly in your Cart.",
-                    data: null
+                    actionType: 'cart_checkout',
+                    message: "Ready to checkout? I'll take you there.",
+                    data: null,
                 });
 
             case 'search_products':

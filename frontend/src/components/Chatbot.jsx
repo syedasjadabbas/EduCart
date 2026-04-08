@@ -15,7 +15,7 @@ export default function Chatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useContext(AuthContext);
-  const { addToCart } = useContext(CartContext);
+  const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
   const navigate = useNavigate();
 
   const faqs = ["Shipping info", "Return policy", "Payment methods"];
@@ -73,10 +73,8 @@ export default function Chatbot() {
     }
   };
 
-  const handleQuickFAQ = (faqText) => {
-      const e = { preventDefault: () => {} };
+    const handleQuickFAQ = (faqText) => {
       setInput(faqText);
-      // We need to wait for state to update, or just pass directly
       setTimeout(() => {
           document.getElementById("chat-submit-btn")?.click();
       }, 0);
@@ -93,13 +91,64 @@ export default function Chatbot() {
   };
 
 
+  const appendBotText = (text) => {
+    setMessages((prev) => [...prev, { sender: 'bot', type: 'text', text }]);
+  };
+
+  const handleInlineAdd = (product, qty = 1) => {
+    if (!product?._id) return;
+
+    const existing = cartItems.find((item) => item._id === product._id);
+    const currentQty = existing?.qty || 0;
+    const nextQty = currentQty + Math.max(1, qty);
+    const stock = Number(product.stock);
+
+    if (Number.isFinite(stock) && stock > 0 && nextQty > stock) {
+      appendBotText(`I cannot add that many. Only ${stock} item(s) are in stock for ${product.name}.`);
+      return;
+    }
+
+    addToCart(product, nextQty);
+    appendBotText(`Added ${Math.max(1, qty)} x ${product.name} to your cart.`);
+  };
+
+  const handleInlineRemove = (productId, productName = 'that item') => {
+    const inCart = cartItems.find((item) => item._id === productId);
+    if (!inCart) {
+      appendBotText(`${productName} is not in your cart.`);
+      return;
+    }
+
+    removeFromCart(productId);
+    appendBotText(`Removed ${productName} from your cart.`);
+  };
+
   const handleAction = (msg) => {
       if (msg.actionType === 'cart_checkout') {
           setIsOpen(false);
           navigate('/checkout');
       } else if (msg.actionType === 'cart_add') {
-          setIsOpen(false);
-          navigate('/shop');
+          if (msg.data?.product) {
+            handleInlineAdd(msg.data.product, Number(msg.data.qty) || 1);
+          } else {
+            setIsOpen(false);
+            navigate('/shop');
+          }
+      } else if (msg.actionType === 'cart_remove') {
+          const query = (msg.data?.productQuery || '').toLowerCase();
+          if (!query) {
+            setIsOpen(false);
+            navigate('/cart');
+            return;
+          }
+
+          const matched = cartItems.find((item) => item.name.toLowerCase().includes(query));
+          if (!matched) {
+            appendBotText(`I could not find '${msg.data.productQuery}' in your cart.`);
+            return;
+          }
+
+          handleInlineRemove(matched._id, matched.name);
       } else {
           setIsOpen(false);
           navigate('/cart');
@@ -157,18 +206,38 @@ export default function Chatbot() {
                 {msg.type === 'products' && msg.data && msg.data.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {msg.data.map(product => (
-                      <Link 
-                        to={`/product/${product._id}`} 
+                      <div
                         key={product._id}
-                        className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                        onClick={() => setIsOpen(false)}
+                        className="p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-100 dark:border-slate-600"
                       >
-                        <img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 object-cover rounded" onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate text-slate-800 dark:text-slate-200">{product.name}</p>
-                          <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">PKR {product.price}</p>
+                        <Link 
+                          to={`/product/${product._id}`} 
+                          className="flex items-center gap-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-md p-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 object-cover rounded" onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate text-slate-800 dark:text-slate-200">{product.name}</p>
+                            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">PKR {product.price}</p>
+                          </div>
+                        </Link>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleInlineAdd(product, 1)}
+                            className="flex-1 py-1.5 text-xs rounded-md bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/40 dark:hover:bg-indigo-800/60 dark:text-indigo-300"
+                          >
+                            Add to Cart
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInlineRemove(product._id, product.name)}
+                            className="flex-1 py-1.5 text-xs rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200"
+                          >
+                            Remove
+                          </button>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -206,7 +275,7 @@ export default function Chatbot() {
                         className="mt-3 w-full py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/40 dark:hover:bg-indigo-800/60 dark:text-indigo-300 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                         {msg.actionType === 'cart_checkout' ? <><ShoppingBag size={14}/> Checkout Now</> : 
-                         msg.actionType === 'cart_add' ? <><ShoppingBag size={14}/> View Shop</> :
+                         msg.actionType === 'cart_add' ? <><ShoppingBag size={14}/> Add to Cart</> :
                          <><Package size={14}/> Manage Cart</>}
                     </button>
                 )}
