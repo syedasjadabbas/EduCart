@@ -43,12 +43,25 @@ export default function Chatbot() {
     try {
       const response = await fetchApi('/api/chatbot/query', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(user?.token ? { Authorization: `Bearer ${user.token}` } : {})
+        },
         body: JSON.stringify({
            message: userMessage,
            userId: user ? user._id : null
         })
       });
+
+      if (response.status === 401 || response.status === 403) {
+        setMessages(prev => [...prev, {
+          sender: 'bot',
+          type: 'text',
+          text: "Please log in as a customer account to use the chatbot."
+        }]);
+        setIsLoading(false);
+        return;
+      }
 
       const responseData = await response.json();
       const { type, message: botMessage, data, actionType } = responseData;

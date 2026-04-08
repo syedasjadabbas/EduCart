@@ -30,6 +30,7 @@ import PageTransition from './components/PageTransition';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import Chatbot from './components/Chatbot';
+import AuthContext from './context/AuthContext';
 
 function App() {
   return (
@@ -77,7 +78,9 @@ function App() {
                 </PageTransition>
               </main>
               <Footer />
-              <Chatbot />
+              <AuthContext.Consumer>
+                {({ user }) => (user && user.role !== 'admin' ? <Chatbot /> : null)}
+              </AuthContext.Consumer>
             </div>
           </Router>
         </CartProvider>
