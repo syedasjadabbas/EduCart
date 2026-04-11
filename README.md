@@ -11,5 +11,4 @@ Key features of Edu Cart.
 • Clean interface designed for quick navigation and usability
 
 Purpose of the project.
-
 Edu Cart demonstrates how an online shopping system works in a real environment. The project shows database integration, user authentication, product management, and order processing within a modern web application structure. 🎯
