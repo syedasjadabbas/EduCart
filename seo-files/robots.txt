@@ -1,0 +1,43 @@
+# EduCart Robots.txt
+# This file tells search engine crawlers which pages to crawl
+
+# Allow all bots
+User-agent: *
+Allow: /
+
+# Disallow admin and sensitive pages
+Disallow: /admin
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /*.json$
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+
+# Specific crawler rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+# Slow crawlers
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 5
+
+# Block bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://educart.vercel.app/sitemap.xml
+Sitemap: https://educart-backend.render.com/sitemap.xml

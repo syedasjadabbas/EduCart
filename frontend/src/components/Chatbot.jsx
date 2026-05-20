@@ -9,7 +9,7 @@ import { getImageUrl } from '../utils/imageHelper';
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: 'bot', type: 'text', text: "Ready for your EduCart queries. How can I help you today? (Try asking me about shipping, your orders, or searching for products like 'shoes under 200')" }
+    { sender: 'bot', type: 'text', text: "👋 Hey there! Welcome to EduCart! I'm your AI assistant, ready to help.\n\n✨ I can help you:\n• Search products (\"Gaming laptops under 50000\")\n• Track orders (\"Where's my order?\")\n• Answer FAQs (Shipping, returns, payments)\n• Manage your cart\n\nWhat can I do for you today?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function Chatbot() {
   const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
   const navigate = useNavigate();
 
-  const faqs = ["Shipping info", "Return policy", "Payment methods"];
+  const faqs = ["🔍 Search products", "📦 Track order", "❓ Get help"];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

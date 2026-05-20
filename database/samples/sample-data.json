@@ -1,0 +1,41 @@
+{
+  "products": [
+    {
+      "name": "Gaming Laptop Pro",
+      "description": "High-performance gaming laptop with RTX graphics",
+      "price": 149999,
+      "oldPrice": 179999,
+      "discount": 16,
+      "category": "laptops",
+      "stock": 25,
+      "ratings": 4.5,
+      "numReviews": 156,
+      "seoTitle": "Gaming Laptop Pro - High Performance | EduCart",
+      "seoDescription": "Buy Gaming Laptop Pro with RTX graphics for best gaming experience. Price: PKR 149,999. Fast shipping, authentic products.",
+      "seoKeywords": ["gaming laptop", "laptop", "computer", "rtx", "gaming", "educart"]
+    },
+    {
+      "name": "Wireless Headphones Max",
+      "description": "Premium noise-cancelling wireless headphones with 30-hour battery",
+      "price": 24999,
+      "oldPrice": 34999,
+      "discount": 28,
+      "category": "headphones",
+      "stock": 120,
+      "ratings": 4.7,
+      "numReviews": 342,
+      "seoTitle": "Wireless Headphones Max - Noise Cancelling | EduCart",
+      "seoDescription": "Premium wireless headphones with noise cancellation. 30-hour battery. Price: PKR 24,999. Student discounts available.",
+      "seoKeywords": ["headphones", "wireless", "noise cancelling", "audio", "music"]
+    }
+  ],
+  "users": [
+    {
+      "name": "Student User",
+      "email": "student@example.com",
+      "role": "user",
+      "isVerified": true,
+      "isStudentVerified": true
+    }
+  ]
+}

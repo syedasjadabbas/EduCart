@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Newsletter = require('../models/Newsletter');
 const sendEmail = require('../utils/sendEmail');
 const upload = require('../middleware/upload');
+const { generateSEOMetadata } = require('../utils/seoGenerator');
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -51,7 +52,8 @@ router.post('/', upload.single('image'), async (req, res) => {
 
         let generatedSlug = slug || (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : 'sample-product');
 
-        const product = new Product({
+        // Create product object with basic data
+        const productData = {
             name: name || 'Sample Product',
             description: description || 'Sample Description',
             price: price || 0,
@@ -64,6 +66,22 @@ router.post('/', upload.single('image'), async (req, res) => {
             seoKeywords: seoKeywords ? (Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim())) : [],
             slug: generatedSlug,
             image: req.file ? (req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`) : 'https://placehold.co/800x800/e2e8f0/1e293b?text=New+Product'
+        };
+
+        // Auto-generate SEO metadata if not provided
+        const seoData = generateSEOMetadata({
+            name: productData.name,
+            description: productData.description,
+            category: productData.category,
+            price: productData.price,
+            seoTitle: seoTitle,
+            seoDescription: seoDescription,
+            seoKeywords: seoKeywords ? (Array.isArray(seoKeywords) ? seoKeywords : seoKeywords.split(',').map(k => k.trim())) : []
+        }, { preserveExisting: true });
+
+        const product = new Product({
+            ...productData,
+            ...seoData
         });
         const createdProduct = await product.save();
 
@@ -148,6 +166,22 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             } else if (req.body.image) {
                 product.image = req.body.image;
             }
+
+            // Auto-generate SEO metadata if the product details have changed and SEO fields are empty
+            const seoData = generateSEOMetadata({
+                name: product.name,
+                description: product.description,
+                category: product.category,
+                price: product.price,
+                seoTitle: product.seoTitle,
+                seoDescription: product.seoDescription,
+                seoKeywords: product.seoKeywords
+            }, { preserveExisting: true }); // Only fill in if empty
+
+            product.seoTitle = seoData.seoTitle;
+            product.seoDescription = seoData.seoDescription;
+            product.seoKeywords = seoData.seoKeywords;
+
             const updatedProduct = await product.save();
             res.json(updatedProduct);
         } else {
