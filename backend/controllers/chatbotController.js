@@ -1,6 +1,25 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
+// AI-like fallback responses for unknown queries
+const aiResponses = [
+    "That's an interesting question! While I don't have a specific answer, I can help you find products or track orders. What else can I assist you with?",
+    "I'm still learning! But I can definitely help you search for products, check your orders, or answer questions about shipping and returns. What would you like to know?",
+    "Great question! For the most accurate answer, please reach out to our support team. But I'm happy to help you browse our store or track your purchases!",
+    "I appreciate your question! While I don't have all the details, I can help you find products or answer questions about our policies. What can I do for you?",
+];
+
+// Greeting patterns and responses
+const greetings = {
+    patterns: ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 'what\'s up', 'howdy'],
+    responses: [
+        "Hey there! 👋 Welcome to EduCart! How can I help you today? I can search for products, track your orders, or answer questions about shipping and returns.",
+        "Hello! 🎓 Welcome to EduCart, your student essentials store. What would you like to explore?",
+        "Hi! 👋 I'm here to help. Looking for products, checking an order, or have a question about our policies?",
+        "Welcome! 🛍️ What brings you to EduCart today? I'm ready to help with product searches, order tracking, or answering any questions!",
+    ]
+};
+
 const cleanCartQuery = (text = '') => {
     return text
         .replace(/^(a|an|the)\s+/i, '')
@@ -33,42 +52,84 @@ const parseCartAction = (message, mode) => {
     };
 };
 
-// A basic rule-based NLP parser
+/**
+ * Enhanced rule-based NLP parser
+ * Detects: greetings, FAQ, order tracking, cart actions, product search, recommendations
+ */
 const parseIntent = (message) => {
-    const lowerMessage = message.toLowerCase();
+    const lowerMessage = message.toLowerCase().trim();
 
-    // 1. FAQ Automation
-    if (lowerMessage.includes('shipping') || lowerMessage.includes('delivery')) {
+    // Check for greetings
+    if (greetings.patterns.some(pattern => lowerMessage.includes(pattern))) {
+        return { intent: 'greeting' };
+    }
+
+    // FAQ - Shipping & Delivery
+    if (lowerMessage.match(/(shipping|delivery|how long|when will|arrive|reaches|post|courier|dispatch)/i)) {
         return { intent: 'faq_shipping' };
     }
-    if (lowerMessage.includes('return') || lowerMessage.includes('refund')) {
+
+    // FAQ - Returns & Refunds
+    if (lowerMessage.match(/(return|refund|exchange|defective|damaged|wrong|broken)/i)) {
         return { intent: 'faq_return' };
     }
-    if (lowerMessage.includes('payment') || lowerMessage.includes('pay') || lowerMessage.includes('card')) {
+
+    // FAQ - Payment Methods
+    if (lowerMessage.match(/(payment|pay|card|visa|mastercard|cod|cash|easypaise|jazz|wallet)/i)) {
         return { intent: 'faq_payment' };
     }
 
-    // 2. Order Tracking
-    if (lowerMessage.includes('where is my order') || lowerMessage.includes('track') || lowerMessage.includes('order status')) {
+    // Order Tracking
+    if (lowerMessage.match(/(where is|track|order status|my order|order number|order id|order update)/i)) {
         return { intent: 'track_order' };
     }
 
-    // 4. Cart Assistance
+    // Product Recommendations
+    if (lowerMessage.match(/(recommend|suggest|similar|related|what should|help me choose|best|top rated)/i)) {
+        return { intent: 'recommend_products' };
+    }
+
+    // Cart - Add Items
     if ((lowerMessage.includes('add') || lowerMessage.includes('put')) && lowerMessage.includes('cart')) {
         return { intent: 'cart_add', original: message, cartAction: parseCartAction(message, 'add') };
     }
+
+    // Cart - Remove Items
     if ((lowerMessage.includes('remove') || lowerMessage.includes('delete')) && lowerMessage.includes('cart')) {
         return { intent: 'cart_remove', original: message, cartAction: parseCartAction(message, 'remove') };
     }
-    if (lowerMessage.includes('checkout') || lowerMessage.includes('abandoned')) {
+
+    // Cart - Checkout
+    if (lowerMessage.match(/(checkout|proceed|payment|buy|purchase)/i)) {
         return { intent: 'cart_checkout' };
     }
 
-    // 3. Product Discovery & Recommendations
+    // Help/Support
+    if (lowerMessage.match(/(help|support|assist|customer service|contact|email|phone)/i)) {
+        return { intent: 'help' };
+    }
+
+    // Product Search - Default
     return { intent: 'search_products', original: message };
 };
 
-// 1 & 2. Main Chatbot Endpoint
+/**
+ * Get a random AI-like fallback response
+ */
+const getAIFallbackResponse = () => {
+    return aiResponses[Math.floor(Math.random() * aiResponses.length)];
+};
+
+/**
+ * Get a random greeting response
+ */
+const getGreetingResponse = () => {
+    return greetings.responses[Math.floor(Math.random() * greetings.responses.length)];
+};
+
+/**
+ * Main Chatbot Handler
+ */
 const handleChat = async (req, res) => {
     try {
         const { message, userId } = req.body;
@@ -77,51 +138,101 @@ const handleChat = async (req, res) => {
         const parsed = parseIntent(message);
 
         switch (parsed.intent) {
+            // Greeting Intent
+            case 'greeting':
+                return res.json({
+                    type: 'text',
+                    message: getGreetingResponse()
+                });
+
+            // FAQ - Shipping
             case 'faq_shipping':
                 return res.json({
                     type: 'text',
-                    message: "📦 **Shipping Information:**\n\n• Standard Shipping: 3-5 business days (PKR 150)\n• Express Shipping: 1-2 business days (PKR 300)\n• FREE shipping on orders over PKR 5000!\n\nWe deliver anywhere in Pakistan using reliable courier services."
+                    message: "📦 **Shipping & Delivery Information:**\n\n• **Standard Shipping**: 3-5 business days → PKR 150\n• **Express Shipping**: 1-2 business days → PKR 300\n• **FREE Shipping**: On orders over PKR 5,000\n\n✅ We deliver nationwide across Pakistan using reliable courier partners.\n\n💡 **Tip**: Track your order in 'My Orders' section once dispatched!\n\nHave more questions? Feel free to ask!"
                 });
+
+            // FAQ - Returns
             case 'faq_return':
                 return res.json({
                     type: 'text',
-                    message: "🔄 **Return Policy:**\n\n• You can return items within 7 days of delivery.\n• Items must be unused and in original packaging.\n• For defective items, we offer a 100% refund or free replacement.\n\nNeed to return something? Go to 'My Orders' and click 'Request Return'."
+                    message: "🔄 **Return & Refund Policy:**\n\n✅ **Return Window**: 7 days from delivery\n✅ **Condition**: Items must be unused & in original packaging\n✅ **Defective Items**: 100% refund or free replacement\n\n**How to Return:**\n1. Go to 'My Orders'\n2. Find the order\n3. Click 'Request Return'\n4. Follow the instructions\n\n💳 **Refund Timeline**: 5-7 business days after return confirmation\n\nNeed help with a return? Contact our support team!"
                 });
+
+            // FAQ - Payment
             case 'faq_payment':
                 return res.json({
                     type: 'text',
-                    message: "💳 **Payment Methods:**\n\nWe offer secure payments via:\n• Cash on Delivery (COD)\n• Credit/Debit Cards (Visa/Mastercard)\n• PayPal Integration\n• EasyPaisa & JazzCash\n\nAll transactions are securely encrypted."
+                    message: "💳 **Payment Methods:**\n\nWe accept multiple secure payment options:\n\n• **Cash on Delivery (COD)** - Pay when you receive\n• **Credit/Debit Cards** - Visa, Mastercard (Secure SSL)\n• **PayPal** - Fast & international\n• **EasyPaisa** - Pakistani mobile payment\n• **Jazz Cash** - Pakistani mobile payment\n\n🔒 **Security**: All transactions are encrypted & secure.\n\n💡 **Tip**: Credit card payments often unlock exclusive discounts!\n\nAny payment issues? Let us know!"
                 });
+
+            // Order Tracking
             case 'track_order':
                 if (!userId) {
                     return res.json({
                         type: 'text',
-                        message: "Please log in to track your orders, or provide an order number (not supported currently without login)."
+                        message: "🔐 To track your orders, please **log in** to your EduCart account.\n\nOnce logged in, go to **'My Orders'** to see status, tracking details, and delivery updates.\n\n👤 **Don't have an account?** Register now to start shopping!"
                     });
                 }
-                const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).limit(3);
+                const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).limit(5);
                 if (orders.length === 0) {
                     return res.json({
                         type: 'text',
-                        message: "I couldn't find any recent orders for your account."
+                        message: "📭 You don't have any orders yet! Ready to make your first purchase? Check out our **Shop** for amazing student essentials! 🛍️"
                     });
                 }
                 return res.json({
                     type: 'orders',
-                    message: "Here are your most recent orders:",
+                    message: "📦 **Your Recent Orders:**",
                     data: orders
                 });
-            
+
+            // Product Recommendations
+            case 'recommend_products':
+                try {
+                    const topProducts = await Product.find({})
+                        .sort({ ratings: -1, numReviews: -1 })
+                        .limit(6);
+                    
+                    if (topProducts.length > 0) {
+                        return res.json({
+                            type: 'products',
+                            message: "⭐ **Top Recommendations for You:**\n\nHere are our most loved products by EduCart customers:",
+                            data: topProducts.slice(0, 4)
+                        });
+                    }
+                } catch (e) {
+                    console.error('Recommendation error:', e);
+                }
+                return res.json({
+                    type: 'text',
+                    message: "💡 **Trending Now**: Browse our shop to see what other students are loving! What category interests you?"
+                });
+
+            // Help & Support
+            case 'help':
+                return res.json({
+                    type: 'text',
+                    message: "🆘 **Need Help?**\n\nI can assist you with:\n\n✅ **Product Search** - \"Show me gaming laptops\"\n✅ **Pricing Filters** - \"Products under 5000\"\n✅ **Order Tracking** - \"Where's my order?\"\n✅ **FAQ** - Shipping, returns, payments\n✅ **Cart Management** - Add/remove items\n✅ **Recommendations** - \"What should I buy?\"\n\n📧 **Direct Support**: Contact our team for urgent issues\n\nWhat can I help you with?"
+                });
+
+            // Cart - Add
             case 'cart_add':
                 if (parsed.cartAction?.query) {
                     const escaped = parsed.cartAction.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const product = await Product.findOne({ name: { $regex: escaped, $options: 'i' } });
+                    const product = await Product.findOne({ 
+                        $or: [
+                            { name: { $regex: escaped, $options: 'i' } },
+                            { category: { $regex: escaped, $options: 'i' } },
+                            { description: { $regex: escaped, $options: 'i' } }
+                        ]
+                    });
 
                     if (product) {
                         return res.json({
                             type: 'action',
                             actionType: 'cart_add',
-                            message: `I found ${product.name}. Click below to add ${parsed.cartAction.qty} to your cart.`,
+                            message: `✅ Found **${product.name}** for PKR ${product.price}.\n\nI'll add ${parsed.cartAction.qty} to your cart. Ready?`,
                             data: {
                                 qty: parsed.cartAction.qty,
                                 product,
@@ -133,95 +244,126 @@ const handleChat = async (req, res) => {
                 return res.json({
                     type: 'action',
                     actionType: 'cart_add',
-                    message: "Tell me what to add, like: 'add 2 notebooks to cart', or use product cards below.",
+                    message: "🛒 **Add to Cart**\n\nTell me what you'd like:\n• \"Add 2 notebooks\"\n• \"Add gaming laptop\"\n• \"Put headphones in cart\"\n\nOr browse products below! 👇",
                     data: parsed.cartAction?.query
                         ? { qty: parsed.cartAction.qty || 1, productQuery: parsed.cartAction.query }
                         : null,
                 });
+
+            // Cart - Remove
             case 'cart_remove':
                 return res.json({
                     type: 'action',
                     actionType: 'cart_remove',
                     message: parsed.cartAction?.query
-                        ? `I can remove '${parsed.cartAction.query}' from your cart.`
-                        : "Tell me what to remove, like: 'remove notebook from cart'.",
+                        ? `🗑️ I'll remove **${parsed.cartAction.query}** from your cart.`
+                        : "🗑️ **Remove from Cart**\n\nTell me what to remove:\n• \"Remove notebook\"\n• \"Delete headphones\"\n• \"Remove laptop from cart\"",
                     data: parsed.cartAction?.query
                         ? { productQuery: parsed.cartAction.query }
                         : null,
                 });
+
+            // Cart - Checkout
             case 'cart_checkout':
                 return res.json({
                     type: 'action',
                     actionType: 'cart_checkout',
-                    message: "Ready to checkout? I'll take you there.",
+                    message: "🛍️ **Ready to Checkout?**\n\nLet's complete your purchase! You'll choose shipping, payment method, and review your order.\n\n💡 Students get exclusive discounts! Make sure to apply your student code.",
                     data: null,
                 });
 
+            // Product Search
             case 'search_products':
             default:
-                // Simple search logic
-                // Try to extract price filter (e.g. "under 5000", "below 100")
                 let query = {};
-                let priceMatch = message.match(/(under|below|less than)\s*(\d+)/i);
+
+                // Price filters
+                let priceMatch = message.match(/(under|below|less than|max|upto)\s*pkr?\s*(\d+)/i);
                 if (priceMatch && priceMatch[2]) {
                     query.price = { $lt: parseInt(priceMatch[2]) };
                 } else {
-                    priceMatch = message.match(/(over|above|more than)\s*(\d+)/i);
+                    priceMatch = message.match(/(over|above|more than|min|from)\s*pkr?\s*(\d+)/i);
                     if (priceMatch && priceMatch[2]) {
                         query.price = { $gt: parseInt(priceMatch[2]) };
                     }
                 }
 
-                // Extract keywords by removing generic words
-                let keywords = message.replace(/(under|below|less than|over|above|more than)\s*\d+/ig, '')
-                                .replace(/(show|me|find|search|for|i|want|need|looking|some|any|products)/ig, '')
-                                .trim();
+                // Extract keywords - improved filtering
+                let keywords = message
+                    .replace(/(under|below|less than|over|above|more than|pkr|rupees|budget)\s*\d+/gi, '')
+                    .replace(/(show|me|find|search|for|i|want|need|looking|some|any|get|buy|products|please|give|have)/gi, '')
+                    .replace(/[?!.,-]/g, '')
+                    .trim();
 
                 if (keywords) {
-                    // split and construct $or for name, category
-                    const words = keywords.split(' ').filter(w => w.length > 2);
+                    const words = keywords
+                        .split(/\s+/)
+                        .filter(w => w.length > 2 && !['the', 'and', 'or', 'of', 'to', 'in', 'at', 'is', 'be'].includes(w.toLowerCase()))
+                        .slice(0, 5);
+
                     if (words.length > 0) {
-                        const regexs = words.map(w => new RegExp(w, 'i'));
+                        const regexes = words.map(w => new RegExp(w, 'i'));
                         query.$or = [
-                            { name: { $in: regexs } },
-                            { category: { $in: regexs } },
-                            { description: { $in: regexs } }
+                            { name: { $in: regexes } },
+                            { category: { $in: regexes } },
+                            { description: { $in: regexes } }
                         ];
                     }
                 }
 
-                // If it's a recommendation based on history (keyword "recommend")
-                if (message.toLowerCase().includes('recommend')) {
-                    // Fetch highest rated or random products
-                    const recommended = await Product.find({}).sort({ ratings: -1 }).limit(4);
-                    return res.json({
-                        type: 'products',
-                        message: "Here are some top-rated products we recommend:",
-                        data: recommended
-                    });
-                }
-
-                const products = await Product.find(query).limit(5);
+                // Search products
+                let products = await Product.find(query)
+                    .sort({ ratings: -1 })
+                    .limit(6);
 
                 if (products.length > 0) {
+                    const resultMsg = products.length === 1 
+                        ? `Found **1** perfect match for you:` 
+                        : `Found **${products.length}** products matching your search:`;
+                    
                     return res.json({
                         type: 'products',
-                        message: `I found ${products.length} products matching your criteria:`,
-                        data: products
+                        message: `🔍 ${resultMsg}\n\nClick on any product to learn more or add to cart!`,
+                        data: products.slice(0, 5)
                     });
                 } else {
+                    // Try broader search
+                    if (keywords && keywords.length > 0) {
+                        const firstWord = keywords.split(/\s+/)[0];
+                        const broaderProducts = await Product.find({
+                            $or: [
+                                { name: { $regex: firstWord, $options: 'i' } },
+                                { category: { $regex: firstWord, $options: 'i' } }
+                            ]
+                        }).limit(4);
+
+                        if (broaderProducts.length > 0) {
+                            return res.json({
+                                type: 'products',
+                                message: `🔍 Hmm, I didn't find exact matches, but here are similar products:`,
+                                data: broaderProducts
+                            });
+                        }
+                    }
+
+                    // AI Fallback response
                     return res.json({
                         type: 'text',
-                        message: "I couldn't find any products matching your description. Could you try different keywords?"
+                        message: `😕 I couldn't find products matching "${message.substring(0, 50)}..."\n\n💡 **Try:**\n• Search by category (books, laptops, stationery)\n• Search by price (\"under 5000\")\n• Browse our shop\n\n${getAIFallbackResponse()}`
                     });
                 }
         }
     } catch (error) {
         console.error('Chatbot error:', error);
-        res.status(500).json({ message: 'An error occurred while processing your request.' });
+        res.status(500).json({ 
+            message: 'Sorry, I encountered an error. Please try again or contact support.' 
+        });
     }
 };
 
+/**
+ * Autocomplete endpoint - product names & common questions
+ */
 const getAutocomplete = async (req, res) => {
     try {
         const { q } = req.query;
@@ -229,20 +371,40 @@ const getAutocomplete = async (req, res) => {
 
         const products = await Product.find({
             name: { $regex: q, $options: 'i' }
-        }).select('name').limit(5);
+        }).select('name').limit(8);
 
-        // Can also add FAQ common questions
         const suggestions = products.map(p => p.name);
-        if ("shipping".includes(q.toLowerCase())) suggestions.push("How much is shipping?");
-        if ("track".includes(q.toLowerCase())) suggestions.push("Track my order");
 
-        res.json(suggestions);
+        // Add FAQ suggestions
+        const faqSuggestions = {
+            shipping: ["How much is shipping?", "Shipping info", "Delivery time"],
+            track: ["Track my order", "Order status", "Where's my order?"],
+            return: ["Return policy", "How to return", "Refund info"],
+            pay: ["Payment methods", "Accept credit card?", "COD available?"],
+            product: ["Gaming laptops", "Headphones", "Books", "Stationery"],
+            recommend: ["What's popular?", "Top rated products", "Bestsellers"],
+            help: ["Customer support", "Need help", "Contact us"]
+        };
+
+        const qLower = q.toLowerCase();
+        for (const [key, faqs] of Object.entries(faqSuggestions)) {
+            if (key.includes(qLower) || qLower.includes(key)) {
+                suggestions.push(...faqs.slice(0, 2));
+                break;
+            }
+        }
+
+        res.json([...new Set(suggestions)].slice(0, 10));
     } catch (error) {
+        console.error('Autocomplete error:', error);
         res.status(500).json({ message: 'Error fetching suggestions' });
     }
 };
 
-// Endpoint for Recommended (Customers also bought)
+/**
+ * Product Recommendations Endpoint
+ * "Customers also bought" logic
+ */
 const getRecommendations = async (req, res) => {
     try {
         const { productId, viewedIds } = req.query;
@@ -251,14 +413,14 @@ const getRecommendations = async (req, res) => {
         const seenIds = new Set();
         if (productId) seenIds.add(productId);
 
+        // Similar category products
         if (productId) {
-            // Find products in similar category
             const product = await Product.findById(productId);
             if (product) {
                 const similar = await Product.find({ 
                     category: product.category, 
                     _id: { $ne: productId } 
-                }).limit(4);
+                }).sort({ ratings: -1 }).limit(4);
                 
                 similar.forEach(p => {
                     recommended.push(p);
@@ -267,12 +429,15 @@ const getRecommendations = async (req, res) => {
             }
         }
         
-        // Add from browsing history if available
+        // Add viewed products recommendations
         if (viewedIds && recommended.length < 4) {
             try {
                 const ids = JSON.parse(viewedIds);
-                if (Array.isArray(ids)) {
-                    const history = await Product.find({ _id: { $in: ids } }).limit(4);
+                if (Array.isArray(ids) && ids.length > 0) {
+                    const history = await Product.find({ 
+                        _id: { $in: ids.filter(id => !seenIds.has(id)) } 
+                    }).sort({ ratings: -1 }).limit(4 - recommended.length);
+                    
                     history.forEach(p => {
                         if (!seenIds.has(p._id.toString())) {
                             recommended.push(p);
@@ -281,18 +446,22 @@ const getRecommendations = async (req, res) => {
                     });
                 }
             } catch (e) {
-                // ignore json parse error
+                // Ignore JSON parse errors
             }
         }
 
+        // Fallback to top-rated products
         if (recommended.length < 4) {
-            // fallback top selling/rated
-            const fallback = await Product.find({ _id: { $nin: Array.from(seenIds) } }).sort({ numReviews: -1 }).limit(4 - recommended.length);
+            const fallback = await Product.find({ 
+                _id: { $nin: Array.from(seenIds) } 
+            }).sort({ ratings: -1, numReviews: -1 }).limit(4 - recommended.length);
+            
             recommended = recommended.concat(fallback);
         }
 
         res.json(recommended.slice(0, 4));
     } catch (error) {
+        console.error('Recommendations error:', error);
         res.status(500).json({ message: 'Error fetching recommendations' });
     }
 };

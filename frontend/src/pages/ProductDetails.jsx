@@ -237,6 +237,46 @@ const ProductDetails = () => {
                     {(product.seoKeywords && product.seoKeywords.length > 0) && (
                         <meta name="keywords" content={product.seoKeywords.join(', ')} />
                     )}
+                    
+                    {/* Open Graph Tags for Social Media */}
+                    <meta property="og:title" content={product.seoTitle || product.name} />
+                    <meta property="og:description" content={product.seoDescription || product.description?.substring(0, 150)} />
+                    <meta property="og:type" content="product" />
+                    <meta property="og:url" content={window.location.href} />
+                    <meta property="og:image" content={product.image} />
+                    <meta property="og:image:width" content="600" />
+                    <meta property="og:image:height" content="600" />
+                    <meta property="og:site_name" content="EduCart - Student Essentials" />
+                    
+                    {/* Twitter Card Tags */}
+                    <meta name="twitter:card" content="summary_large_image" />
+                    <meta name="twitter:title" content={product.seoTitle || product.name} />
+                    <meta name="twitter:description" content={product.seoDescription || product.description?.substring(0, 150)} />
+                    <meta name="twitter:image" content={product.image} />
+                    
+                    {/* Schema.org Product Markup */}
+                    <script type="application/ld+json">
+                        {JSON.stringify({
+                            '@context': 'https://schema.org/',
+                            '@type': 'Product',
+                            'name': product.name,
+                            'description': product.description,
+                            'image': product.image,
+                            'brand': { '@type': 'Brand', 'name': 'EduCart' },
+                            'offers': {
+                                '@type': 'Offer',
+                                'url': window.location.href,
+                                'priceCurrency': 'PKR',
+                                'price': product.price,
+                                'availability': product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+                            },
+                            'aggregateRating': product.ratings > 0 ? {
+                                '@type': 'AggregateRating',
+                                'ratingValue': product.ratings,
+                                'ratingCount': product.numReviews
+                            } : undefined
+                        })}
+                    </script>
                 </Helmet>
             )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
