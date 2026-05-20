@@ -279,6 +279,35 @@ const confirmOrderReceived = async (req, res) => {
         order.receivedAt = Date.now();
         order.notReceivedCount = 0; // Clear reports as it is now received
         const updatedOrder = await order.save();
+
+        // Notify admin via email
+        const userName = order.contactInfo?.name || 'A customer';
+        const userEmail = order.contactInfo?.email || 'N/A';
+        const adminEmailHtml = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #d1fae5; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">✅ Order Delivered Successfully</h1>
+                </div>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">
+                        <strong>${userName}</strong> (${userEmail}) has confirmed receipt of order <strong>#${order._id}</strong>.
+                    </p>
+                    <div style="background-color: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 20px; margin-bottom: 24px; border-left: 5px solid #10b981;">
+                        <p style="margin: 0; font-size: 15px; color: #064e3b;">The customer has successfully received their package!</p>
+                    </div>
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; font-size: 14px; color: #475569;">
+                        <p style="margin: 0 0 10px 0;"><strong>Delivered At:</strong> ${new Date(order.receivedAt).toLocaleString()}</p>
+                        <p style="margin: 0;"><strong>Order Total:</strong> Rs ${order.totalPrice.toLocaleString()}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        sendEmail({
+            email: 'asjadabbaszaidi@gmail.com',
+            subject: `✅ DELIVERED - Order #${order._id} Confirmed by Customer`,
+            html: adminEmailHtml
+        }).catch(err => console.error('Delivered admin email failed:', err.message));
+
         res.json(updatedOrder);
     } catch (error) {
         res.status(500).json({ message: error.message });
