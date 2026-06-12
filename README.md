@@ -12,6 +12,11 @@ EduCart is a modern e-commerce platform designed for students and online shopper
 
 The platform includes secure authentication, intelligent product search, order management, AI chatbot assistance, SEO optimization, and an admin dashboard for managing products, users, and orders.
 
+## Live Demo
+
+Frontend: https://edu-cart-ten.vercel.app/
+Backend API: https://your-backend-url.com
+
 ## Features
 
 ### E-Commerce System
@@ -54,6 +59,15 @@ The platform includes secure authentication, intelligent product search, order m
 * Open Graph and Twitter Cards
 * XML sitemap generation
 * Robots.txt optimization
+
+###Engineering Highlights
+
+* Modular frontend/backend separation
+* REST API-driven architecture
+* JWT-based authentication workflows
+* Optimized database operations
+* SEO-focused rendering system
+* Scalable project organization
 
 ## Tech Stack
 
