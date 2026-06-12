@@ -15,7 +15,7 @@ The platform includes secure authentication, intelligent product search, order m
 ## Live Demo
 
 Frontend: https://edu-cart-ten.vercel.app/
-Backend API: https://your-backend-url.com
+Backend API: https://educart-backend-ucw2.onrender.com
 
 ## Features
 
