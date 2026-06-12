@@ -2,7 +2,7 @@
 
 ![EduCart Banner](https://img.shields.io/badge/EduCart-Full%20Stack%20E--Commerce-blueviolet?style=for-the-badge&logo=react&logoColor=white)
 
-**🎓 Production-oriented full-stack e-commerce platform** built with React.js, Node.js, Express, and MongoDB featuring scalable backend architecture, JWT authentication, AI-powered chatbot support, and SEO optimization.
+**🎓 Production-oriented full-stack e-commerce platform** built with React.js, Node.js, Express, and MongoDB featuring scalable backend architecture, JWT authentication, AI-powered chatbot support, and comprehensive admin management system.
 
 ---
 
@@ -16,6 +16,66 @@ The platform includes secure authentication, intelligent product search, order m
 
 - **Frontend:** [https://edu-cart-ten.vercel.app/](https://edu-cart-ten.vercel.app/)
 - **Backend API:** [https://educart-backend-ucw2.onrender.com](https://educart-backend-ucw2.onrender.com)
+
+---
+
+## 📸 Screenshots
+
+### 🏠 Homepage
+The homepage features a professional, modern design with animated elements:
+- Gradient animated banner
+- Featured products showcase
+- Category navigation
+- Student-focused messaging
+
+### 🛍️ Product Catalog
+- Grid layout with product cards
+- Product filtering by category, price, and ratings
+- Smart search functionality
+- Product details with images from Cloudinary
+- Add to cart and wishlist options
+
+### 🔐 Authentication
+- User registration with email verification
+- Secure login with JWT tokens
+- Role-based access control (User/Admin)
+- Student verification badge
+- Password recovery system
+
+### 🛒 Shopping Cart
+- Real-time cart updates
+- Quantity management
+- Price calculation with tax
+- Discount code application
+- Checkout workflow
+
+### 📋 Order Management
+- Order history tracking
+- Order status updates
+- Invoice generation
+- Order tracking with delivery status
+- Purchase history with filters
+
+### 🤖 AI Chatbot
+- NLP-powered intelligent assistant
+- Product recommendations
+- Order tracking assistance
+- FAQ automation
+- 24/7 customer support
+
+### 👨‍💼 Admin Dashboard
+- Complete product management (CRUD operations)
+- User management and verification
+- Sales analytics and revenue tracking
+- Order management and fulfillment
+- Inventory control
+- SEO metadata management
+
+### 📱 Responsive Design
+- Mobile-first approach with Tailwind CSS
+- Works seamlessly on all device sizes
+- Touch-optimized interface
+- Fast loading times with Vite
 
 ---
 
