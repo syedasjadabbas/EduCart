@@ -22,60 +22,34 @@ The platform includes secure authentication, intelligent product search, order m
 ## 📸 Screenshots
 
 ### 🏠 Homepage
-The homepage features a professional, modern design with animated elements:
-- Gradient animated banner
-- Featured products showcase
-- Category navigation
-- Student-focused messaging
+The homepage features a professional, modern design with animated elements and featured products.
+
+![EduCart Homepage](./screenshots/homepage.png)
 
 ### 🛍️ Product Catalog
-- Grid layout with product cards
-- Product filtering by category, price, and ratings
-- Smart search functionality
-- Product details with images from Cloudinary
-- Add to cart and wishlist options
+Browse through our extensive product collection with filtering and detailed product information.
 
-### 🔐 Authentication
-- User registration with email verification
-- Secure login with JWT tokens
-- Role-based access control (User/Admin)
-- Student verification badge
-- Password recovery system
+![Product Page](./screenshots/product-page.png)
 
-### 🛒 Shopping Cart
-- Real-time cart updates
-- Quantity management
-- Price calculation with tax
-- Discount code application
-- Checkout workflow
+### 🛒 Shopping Cart & Checkout
+Seamless shopping experience with cart management and secure checkout process.
 
-### 📋 Order Management
-- Order history tracking
-- Order status updates
-- Invoice generation
-- Order tracking with delivery status
-- Purchase history with filters
-
-### 🤖 AI Chatbot
-- NLP-powered intelligent assistant
-- Product recommendations
-- Order tracking assistance
-- FAQ automation
-- 24/7 customer support
+![Checkout Page](./screenshots/checkout.png)
 
 ### 👨‍💼 Admin Dashboard
-- Complete product management (CRUD operations)
-- User management and verification
-- Sales analytics and revenue tracking
-- Order management and fulfillment
-- Inventory control
-- SEO metadata management
+Complete management system for products, users, orders, and analytics. Monitor sales and inventory in real-time.
 
-### 📱 Responsive Design
-- Mobile-first approach with Tailwind CSS
-- Works seamlessly on all device sizes
-- Touch-optimized interface
-- Fast loading times with Vite
+![Admin Dashboard](./screenshots/dashboard.png)
+
+### 🤖 AI Chatbot
+Intelligent assistant providing product recommendations, order tracking, and 24/7 customer support.
+
+![AI Chatbot](./screenshots/chatbot.png)
+
+### 🏠 Premium Banner
+Experience our beautifully designed animated banner showcasing EduCart's features.
+
+![Premium Banner](./screenshots/banner.png)
 
 ---
 
@@ -291,6 +265,14 @@ EduCart/
 │   ├── migrations/             # DB migrations
 │   └── samples/                # Sample data
 │
+├── screenshots/                # Application Screenshots
+│   ├── homepage.png
+│   ├── product-page.png
+│   ├── checkout.png
+│   ├── dashboard.png
+│   ├── chatbot.png
+│   └── banner.png
+│
 └── README.md                   # Documentation
 ```
 
@@ -383,7 +365,7 @@ VITE_API_URL=http://localhost:5000/api
 
 ## 📊 Stats
 
-- **Language:** JavaScript (99.3%)
+- **Language:** JavaScript (98%)
 - **Total Commits:** Active development
 - **Last Updated:** June 2026
 - **Status:** ✅ Production Ready
