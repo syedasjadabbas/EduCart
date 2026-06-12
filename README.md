@@ -114,25 +114,15 @@ MongoDB Database
 
 ## Screenshots
 
-### Homepage
+Core product flows and admin capabilities:
 
-![Homepage](screenshots/homepage.png)
-
-### Product Page
-
-![Product Page](screenshots/product-page.png)
-
-### Cart & Checkout
-
-![Checkout](screenshots/checkout.png)
-
-### Admin Dashboard
-
-![Dashboard](screenshots/dashboard.png)
-
-### AI Chatbot
-
-![Chatbot](screenshots/chatbot.png)
+| View | Preview |
+| --- | --- |
+| Homepage | ![Homepage](screenshots/homepage.png) |
+| Product Page | ![Product Page](screenshots/product-page.png) |
+| Checkout | ![Checkout](screenshots/checkout.png) |
+| Dashboard | ![Dashboard](screenshots/dashboard.png) |
+| Chatbot | ![Chatbot](screenshots/chatbot.png) |
 
 ## Installation
 
