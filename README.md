@@ -2,6 +2,8 @@
 
 ![EduCart Banner](https://img.shields.io/badge/EduCart-Full%20Stack%20E--Commerce-blueviolet?style=for-the-badge&logo=react&logoColor=white)
 
+![Premium Banner](./screenshots/banner.png)
+
 **🎓 Production-oriented full-stack e-commerce platform** built with React.js, Node.js, Express, and MongoDB featuring scalable backend architecture, JWT authentication, AI-powered chatbot support, and comprehensive admin management system.
 
 ---
@@ -45,11 +47,6 @@ Complete management system for products, users, orders, and analytics. Monitor s
 Intelligent assistant providing product recommendations, order tracking, and 24/7 customer support.
 
 ![AI Chatbot](./screenshots/chatbot.png)
-
-### 🏠 Premium Banner
-Experience our beautifully designed animated banner showcasing EduCart's features.
-
-![Premium Banner](./screenshots/banner.png)
 
 ---
 
@@ -266,12 +263,12 @@ EduCart/
 │   └── samples/                # Sample data
 │
 ├── screenshots/                # Application Screenshots
+│   ├── banner.png
 │   ├── homepage.png
 │   ├── product-page.png
 │   ├── checkout.png
 │   ├── dashboard.png
-│   ├── chatbot.png
-│   └── banner.png
+│   └── chatbot.png
 │
 └── README.md                   # Documentation
 ```
