@@ -22,9 +22,6 @@ const OrderDetail = () => {
 
     const fetchOrder = async () => {
         try {
-            // Artificial delay to show off beautiful skeletons for 600ms
-            await new Promise(r => setTimeout(r, 600));
-
             const res = await fetchApi(`/api/orders/${id}`, {
                 headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {},
             });

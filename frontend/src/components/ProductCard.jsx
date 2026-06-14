@@ -50,8 +50,9 @@ const ProductCard = ({ product }) => {
 
             <Link to={`/product/${product.slug || product._id}`} className="block relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 <img
-                    src={getImageUrl(product.image)}
+                    src={getImageUrl(product.image, { width: 400 })}
                     alt={product.name}
+                    loading="lazy"
                     className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'}`}
                 />
                 {/* Overlay on hover */}

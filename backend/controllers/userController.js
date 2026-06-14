@@ -71,6 +71,7 @@ const registerUser = async (req, res) => {
         res.status(201).json({
             message: 'Account created! Please check your email to verify your account before logging in.',
             requiresVerification: true,
+            verificationUrl: process.env.NODE_ENV !== 'production' ? verifyUrl : undefined,
         });
 
     } catch (error) {
@@ -445,21 +446,47 @@ const getAllUsers = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized as admin' });
         }
 
-        // Aggregate to get user data along with their order counts
-        const Order = require('../models/Order');
-        const users = await User.find({}).select('-password -resetPasswordToken -resetPasswordExpire');
-        const orders = await Order.find({ paymentStatus: { $ne: 'rejected' } });
-
-        const usersWithMetrics = users.map(user => {
-            const userOrders = orders.filter(o => o.user && o.user.toString() === user._id.toString());
-            const totalSpent = userOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-
-            return {
-                ...user.toObject(),
-                orderCount: userOrders.length,
-                totalSpent
-            };
-        });
+        // Aggregate to get user data along with their order counts using database performance optimization
+        const usersWithMetrics = await User.aggregate([
+            {
+                $lookup: {
+                    from: 'orders',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'userOrders'
+                }
+            },
+            {
+                $project: {
+                    password: 0,
+                    resetPasswordToken: 0,
+                    resetPasswordExpire: 0
+                }
+            },
+            {
+                $addFields: {
+                    filteredOrders: {
+                        $filter: {
+                            input: '$userOrders',
+                            as: 'order',
+                            cond: { $ne: ['$$order.paymentStatus', 'rejected'] }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    orderCount: { $size: '$filteredOrders' },
+                    totalSpent: { $sum: '$filteredOrders.totalPrice' }
+                }
+            },
+            {
+                $project: {
+                    userOrders: 0,
+                    filteredOrders: 0
+                }
+            }
+        ]);
 
         res.json(usersWithMetrics);
     } catch (error) {

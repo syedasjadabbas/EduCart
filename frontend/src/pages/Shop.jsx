@@ -19,9 +19,6 @@ const Shop = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                // Artificial delay to show off beautiful skeletons for 600ms
-                await new Promise(r => setTimeout(r, 600));
-
                 const res = await fetchApi('/api/products');
                 const data = await res.json();
                 setProducts(data);

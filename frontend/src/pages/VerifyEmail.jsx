@@ -12,9 +12,12 @@ const VerifyEmail = () => {
         const verify = async () => {
             try {
                 const res = await fetchApi(`/api/users/verify-email/${token}`);
-                const text = await res.text();
-                if (!text) throw new Error('Empty response');
-                const data = JSON.parse(text);
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    throw new Error('Server returned an invalid response format.');
+                }
                 
                 if (res.ok) {
                     setStatus('success');
@@ -25,7 +28,7 @@ const VerifyEmail = () => {
                 }
             } catch (err) {
                 setStatus('error');
-                setMessage('Network error. Please try again.');
+                setMessage(err.message || 'Network error. Please try again.');
             }
         };
         if (token) verify();
