@@ -36,8 +36,38 @@ export const getApiUrl = (path) => {
     
     return finalUrl;
 };
+ 
+let fetchCache = {};
 
 export const fetchApi = async (path, options = {}) => {
     const url = getApiUrl(path);
+
+    const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const hasAuth = options.headers && (options.headers['Authorization'] || options.headers['authorization']);
+
+    // Cache public GET requests for 30 seconds, skip orders and admin verifications
+    if (isGet && !hasAuth && !path.includes('/api/orders') && !path.includes('/api/users/pending-verifications')) {
+        const cached = fetchCache[url];
+        if (cached && (Date.now() - cached.timestamp < 30000)) {
+            console.log(`[CACHE HIT] ${url}`);
+            return cached.response.clone();
+        }
+
+        const res = await fetch(url, options);
+        if (res.ok) {
+            fetchCache[url] = {
+                response: res.clone(),
+                timestamp: Date.now()
+            };
+        }
+        return res;
+    }
+
+    // Clear cache on mutations (POST, PUT, DELETE)
+    if (!isGet) {
+        console.log(`[CACHE CLEAR] due to mutation on ${url}`);
+        fetchCache = {};
+    }
+
     return fetch(url, options);
 };

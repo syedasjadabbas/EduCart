@@ -10,6 +10,7 @@ const Register = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [verified, setVerified] = useState(false);
+    const [devVerificationUrl, setDevVerificationUrl] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,6 +29,9 @@ const Register = () => {
             });
             const data = await res.json();
             if (res.ok && data.requiresVerification) {
+                if (data.verificationUrl) {
+                    setDevVerificationUrl(data.verificationUrl);
+                }
                 setVerified(true); // Show the "check your email" screen
             } else {
                 setError(data.message || 'Registration failed.');
@@ -60,6 +64,13 @@ const Register = () => {
                         <p>✅ The link expires in <strong>24 hours</strong>.</p>
                         <p>✅ Check your spam/junk folder if you don't see it.</p>
                     </div>
+                    {devVerificationUrl && (
+                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 text-left space-y-2">
+                            <p className="font-bold">🛠️ Dev Verification Fallback:</p>
+                            <p>Since email delivery is failing or not configured, you can click below to verify directly:</p>
+                            <a href={devVerificationUrl} className="inline-block font-bold text-blue-600 dark:text-blue-400 hover:underline">Verify Account Directly &rarr;</a>
+                        </div>
+                    )}
                     <Link
                         to="/login"
                         className="block w-full py-3.5 px-4 text-center font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
