@@ -1,8 +1,15 @@
 # Node
 node_modules/
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment files
 .env
+.env.*
+!.env.example
+!.env.template
 
 # Backend Uploads (Moved to Cloudinary)
 backend/uploads/
@@ -15,3 +22,8 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Backups
+*.bak
+*.backup
+

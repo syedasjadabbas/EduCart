@@ -86,11 +86,21 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 if (!process.env.JWT_SECRET) {
-    console.warn('[WARNING] JWT_SECRET is not defined. Using fallback_secret (insecure for production).');
+    if (process.env.NODE_ENV === 'production') {
+        console.error('[FATAL] JWT_SECRET environment variable is missing in production. Shutting down for security.');
+        process.exit(1);
+    } else {
+        console.warn('[SECURITY WARNING] JWT_SECRET is not defined in development. Authentication requests will fail safely.');
+    }
 }
 
 if (!process.env.MONGO_URI) {
-    console.warn('[WARNING] MONGO_URI is not defined. Connecting to local MongoDB.');
+    if (process.env.NODE_ENV === 'production') {
+        console.error('[FATAL] MONGO_URI environment variable is missing in production. Shutting down for security.');
+        process.exit(1);
+    } else {
+        console.warn('[WARNING] MONGO_URI is not defined. Attempting connection to local MongoDB.');
+    }
 }
 
 app.listen(PORT, () => {
