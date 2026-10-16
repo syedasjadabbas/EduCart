@@ -4,7 +4,7 @@
 
 ![Premium Banner](./screenshots/banner.png)
 
-**🎓 Production-oriented full-stack e-commerce platform** built with React.js, Node.js, Express, and MongoDB featuring scalable backend architecture, JWT authentication, AI-powered chatbot support, and comprehensive admin management system.
+**🎓 MERN e-commerce platform with JWT auth, role-based admin dashboard and PayPal checkout (academic project).** built with React.js, Node.js, Express, and MongoDB featuring scalable backend architecture, JWT authentication, AI-powered chatbot support, and comprehensive admin management system.
 
 ---
 
